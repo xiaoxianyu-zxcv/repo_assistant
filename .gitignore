@@ -1,3 +1,22 @@
+# editor / local history
 .history/
-.idea/
 .vscode/
+.idea/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# env
+.env
+
+# docker / qdrant local data
+qdrant_storage/
+
+# os
+.DS_Store
+Thumbs.db
+
+*.md
