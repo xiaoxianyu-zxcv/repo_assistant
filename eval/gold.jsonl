@@ -1,0 +1,1 @@
+{"question":"How does FastAPI handle OpenAPI schema generation?","expected_sources":[15855],"answer_points":["OpenAPI schema generation depends on request body schema and Pydantic models."]}

@@ -1,3 +1,6 @@
 ﻿fastapi
 uvicorn[standard]
 qdrant-client
+requests
+sentence-transformers
+openai

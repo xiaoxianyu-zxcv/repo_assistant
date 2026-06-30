@@ -3,6 +3,8 @@
 from fastapi import FastAPI
 from qdrant_client import QdrantClient
 
+from src.generate.main import answer_query
+
 
 app = FastAPI(title="Repo Assistant")
 
@@ -28,3 +30,8 @@ def health_full():
         "qdrant": "ok",
         "collections_count": len(collections.collections)
     }
+
+@app.post("/query")
+def query(query: dict):
+    return answer_query(query.get("query"), top_k=query.get("top_k"))
+
