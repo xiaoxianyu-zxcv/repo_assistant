@@ -15,8 +15,8 @@ CHUNK_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
 QDRANT_URL = os.getenv("QDRANT_URL", "http://127.0.0.1:6333")
 COLLECTION_NAME = "repo_assistant_chunks"
 
-MODEL_NAME = "BAAI/bge-small-en-v1.5"
-VECTOR_SIZE = 384
+MODEL_NAME = "BAAI/bge-m3"
+VECTOR_SIZE = 1024
 
 def create_qdrant_client():
     # 连接本机docker的qdrant

@@ -4,7 +4,7 @@ import requests
 
 from src.common.jsonl import write_jsonl
 
-REPO_NAME = "fastapi/fastapi"
+REPO_NAME = "xuxueli/xxl-job"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 OUTPUT_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
 
