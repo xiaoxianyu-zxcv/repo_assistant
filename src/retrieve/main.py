@@ -10,11 +10,17 @@ MODEL_NAME = "BAAI/bge-m3"
 
 
 def create_qdrant_client():
-    return QdrantClient(url=QDRANT_URL, timeout=10)
+    if not hasattr(create_qdrant_client, "_cache"):
+        create_qdrant_client._cache = QdrantClient(url=QDRANT_URL, timeout=10)
+
+    return create_qdrant_client._cache
 
 
 def load_embedding_model():
-    return SentenceTransformer(MODEL_NAME)
+    if not hasattr(load_embedding_model, "_cache"):
+        load_embedding_model._cache = SentenceTransformer(MODEL_NAME)
+
+    return load_embedding_model._cache
 
 
 def embed_query(model, query):

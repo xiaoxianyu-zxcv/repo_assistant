@@ -1,1 +1,336 @@
-{"question":"How does FastAPI handle OpenAPI schema generation?","expected_sources":[15855],"answer_points":["OpenAPI schema generation depends on request body schema and Pydantic models."]}
+{
+  "question": "官方文档里写的 MySQL 驱动类名和 master 分支实际的配置文件是否一致？",
+  "expected_sources": [
+    3972
+  ],
+  "answer_points": [
+    "master 分支 xxl-job-admin/src/main/resources/application.properties 中 spring.datasource.driver-class-name 已经是 com.mysql.cj.jdbc.Driver",
+    "中文文档 doc/XXL-JOB官方文档.md 和英文文档 doc/XXL-JOB-English-Documentation.md 里写的仍是旧的 com.mysql.jdbc.Driver",
+    "二者不一致；项目现在依赖的是 MySQL Connector/J 8.x，照旧文档配置容易在启动时看到 deprecated driver class 的提示"
+  ]
+}
+{
+  "question": "在任务管理页面全选多条数据后点删除，为什么会提示「请选择一条数据」？",
+  "expected_sources": [
+    3968
+  ],
+  "answer_points": [
+    "前端删除按钮使用了 selectOnlyOne 样式类，多选时按钮虽然被 CSS 禁用，但 CSS 禁用无法真正阻止点击",
+    "JS 校验逻辑写死为 selectIds.length !== 1",
+    "后端 JobInfoController、JobGroupController 的 delete/start/stop 接口同样限制 ids.size() != 1",
+    "前后端都只支持单条操作，所以多选必然报错"
+  ]
+}
+{
+  "question": "3.4.0 版本里，如果通过 initLogPath 自定义了日志根路径，callbackLogPath 会不会跟着变成新路径？",
+  "expected_sources": [
+    3959
+  ],
+  "answer_points": [
+    "initLogPath 方法里只对 logBasePath 和 glueSrcPath 做了重新赋值",
+    "callbackLogPath 是类加载时基于旧的默认 logBasePath 拼出来的静态字段，initLogPath 里没有对它重新赋值",
+    "所以即使调用 initLogPath 传入新路径，callbackLogPath 实际用的还是默认路径"
+  ]
+}
+{
+  "question": "xxl-job-admin 的 /api/{uri} OpenAPI 接口默认是怎么做鉴权的？",
+  "expected_sources": [
+    3938
+  ],
+  "answer_points": [
+    "该接口用 @XxlSso(login = false) 显式跳过了 SSO 登录校验，只依赖请求头 XXL-JOB-ACCESS-TOKEN 做鉴权",
+    "application.properties 里默认把 xxl.job.accessToken 配置成固定值 default_token",
+    "只要部署时没替换这个默认值，未登录的攻击者也能直接调用 registry、registryRemove、callback 等特权接口"
+  ]
+}
+{
+  "question": "logDetailCat 接口在权限校验上和 logDetailPage 有什么区别？",
+  "expected_sources": [
+    3936
+  ],
+  "answer_points": [
+    "logDetailPage 在返回页面前调用了 JobGroupPermissionUtil.validJobGroupPermission 校验当前用户对 jobGroup 的权限",
+    "logDetailCat 只根据传入的 logId 加载日志记录，然后直接向执行器请求日志内容，没有做同样的权限校验",
+    "结果是任何登录用户只要拿到一个有效 logId，就能读取自己权限组之外的执行日志"
+  ]
+}
+{
+  "question": "手动触发任务时传入的 addressList 参数，后端在真正发起请求前做了哪些校验？",
+  "expected_sources": [
+    3935
+  ],
+  "answer_points": [
+    "XxlJobServiceImpl.trigger 只校验当前用户对目标 jobGroup 是否有权限（JobGroupPermissionUtil.hasJobGroupPermission）",
+    "没有校验传入的 addressList 是否属于该执行器分组，也没有校验它是不是可信执行器",
+    "JobTrigger 里只要 addressList 非空，就会直接覆盖该分组配置的执行器地址，管理端随后会向这个地址发起 HTTP 请求"
+  ]
+}
+{
+  "question": "JobLogController 里，哪几个接口调用了 jobGroup 权限校验，logDetailCat 是不是也调用了？",
+  "expected_sources": [
+    3975
+  ],
+  "answer_points": [
+    "pageList、logKill、clearLog、logDetailPage 这四个接口都调用了 JobGroupPermissionUtil.validJobGroupPermission",
+    "logDetailCat（大约在 JobLogController.java:295 附近）没有调用这个校验，加载 jobLog 后直接向执行器请求日志内容",
+    "它是同一个 controller 里唯一缺少这一权限校验的接口"
+  ]
+}
+{
+  "question": "GLUE(Java) 类型的任务脚本在执行器端是怎样被编译执行的，有没有做沙箱隔离？",
+  "expected_sources": [
+    3945
+  ],
+  "answer_points": [
+    "glueSource 会通过 GroovyClassLoader.parseClass() 编译成 Class，再用 clazz.newInstance() 实例化执行",
+    "代码里没有配置 SecureASTCustomizer、没有 CompilerConfiguration、没有类白名单，也没有对输入做校验",
+    "也就是零沙箱限制，相当于允许执行任意 Groovy 代码"
+  ]
+}
+{
+  "question": "执行 PowerShell 类型的 GLUE 任务时，如果任务参数里带中文，执行器日志会出现什么异常？",
+  "expected_sources": [
+    3921
+  ],
+  "answer_points": [
+    "该问题在版本 3.4.0、执行器 demo-3.4.0、PowerShell 5.1 环境下复现",
+    "执行器 console 报 java.nio.charset.MalformedInputException: Input length = 1，出现在 XxlJobFileAppender 读取日志文件（readLog）的调用链里",
+    "原始日志文件里中文参数内容被写成了非 UTF-8 可正常解析的乱码字节"
+  ]
+}
+{
+  "question": "有人为了修复类似 #3921 的编码问题修改了 ScriptUtil.markScriptFile，这个改动本身带来了什么新问题？",
+  "expected_sources": [
+    3930
+  ],
+  "answer_points": [
+    "该改动是在 ScriptJobHandler 第 68 行调用 ScriptUtil.markScriptFile 时，为生成脚本文件的 UTF8 编码加上了 BOM",
+    "修改前生成的日志是 UTF8 无 BOM 编码，没有中文参数时前端能正常读取日志",
+    "修改后新生成日志的编码变成了 GB2312/ASCII，导致前端反而无法读取日志"
+  ]
+}
+{
+  "question": "从 xxl-job-admin 2.4.1 升级到 3.0.0 后，同一个密码在数据库 password 字段里的值有变化吗？",
+  "expected_sources": [
+    3905
+  ],
+  "answer_points": [
+    "升级前后，同一个密码在数据库 password 字段里对应的值不一样，说明密码的加密方式在这次升级中发生了变化",
+    "报告者提到没有在 CHANGELOG 里找到关于加密算法变更的说明",
+    "这里只是现象观察，语料中没有说明具体换成了什么新算法或变更原因"
+  ]
+}
+{
+  "question": "Cron 表达式里选择「第几周的星期几」，用户提出斜杠 / 和井号 # 分别代表什么含义？",
+  "expected_sources": [
+    3955
+  ],
+  "answer_points": [
+    "报告者认为 * * * ? * 1/1 里的斜杠 / 应该解释为「间隔」，即从星期一开始每 1 天执行一次",
+    "报告者据此提出，选择「第几周的星期几」这种场景应该用 * * * ? * 1#1（井号）而不是斜杠",
+    "这只是提交者自己的分析和疑问，语料中没有维护者给出的官方确认"
+  ]
+}
+{
+  "question": "从 xxl-job v3.1.1 手动升级数据库到 v3.3.2，需要执行哪些步骤？",
+  "expected_sources": [
+    3928
+  ],
+  "answer_points": [
+    "还原 v3.1.1 的数据库备份文件",
+    "给 xxl_job_user 表新增 token 字段（varchar(100)）",
+    "把 xxl_job_user 表 password 字段长度修改为 varchar(100)",
+    "用 SHA-256 重新计算密文并更新已有用户的 password 字段值"
+  ]
+}
+{
+  "question": "v3.3.2 版本用 docker-compose 启动时报 openjdk:21-jdk-slim 镜像找不到，该怎么解决？",
+  "expected_sources": [
+    3932
+  ],
+  "answer_points": [
+    "报错原因是 admin 模块 Dockerfile 里 FROM openjdk:21-jdk-slim 这个基础镜像已经找不到",
+    "把 Dockerfile 里的 FROM openjdk:21-jdk-slim 换成 FROM eclipse-temurin:21-jdk-jammy 就能启动成功"
+  ]
+}
+{
+  "question": "要修复任务管理页面全选删除报错的问题，前后端各要怎么改？",
+  "expected_sources": [
+    3968
+  ],
+  "answer_points": [
+    "前端：删除/启动/停止按钮的样式类从 selectOnlyOne 改成 selectAny，校验条件从 selectIds.length !== 1 改成 selectIds.length <= 0",
+    "后端：去掉 JobInfoController、JobGroupController 里 ids.size() != 1 的限制，改成循环遍历 ids 逐个调用 service 方法",
+    "执行器删除时仍需要保留「至少剩余一个」和「无关联任务」这两条保护逻辑"
+  ]
+}
+{
+  "question": "logDetailCat 接口缺少权限校验的问题，建议怎么修？",
+  "expected_sources": [
+    3975
+  ],
+  "answer_points": [
+    "在 logDetailCat 里加载完 XxlJobLog、请求执行器日志之前，调用 JobGroupPermissionUtil.validJobGroupPermission(request, jobLog.getJobGroup())",
+    "这是和同一 controller 里其他接口一致的单行修复",
+    "可选加固：给所有涉及 jobGroup/logId/jobId 的接口加静态检查规则，或改用方法级 @PreAuthorize 统一做权限校验，避免类似遗漏"
+  ]
+}
+{
+  "question": "针对手动触发任务时 addressList 可被用户控制导致的 SSRF 问题，建议的修复方向是什么？",
+  "expected_sources": [
+    3935
+  ],
+  "answer_points": [
+    "不要信任客户端传入的 addressList 做手动触发",
+    "执行器地址只应该由服务端从可信的分组配置或注册记录里解析",
+    "如果一定要支持地址覆盖，需要做严格的白名单校验并绑定到当前 job group",
+    "需要屏蔽 loopback、link-local、Docker 内网、私有网段和云元数据服务等目标地址",
+    "增加针对未授权地址覆盖场景的回归测试"
+  ]
+}
+{
+  "question": "针对默认 accessToken 暴露特权 OpenAPI 接口的问题，建议怎么修复？",
+  "expected_sources": [
+    3938
+  ],
+  "answer_points": [
+    "去掉不安全的默认值，要求部署时必须显式配置一个强随机 token",
+    "如果 xxl.job.accessToken 仍然是 default_token，就拒绝启动",
+    "不要只靠一个静态共享 token 保护 /api/* 特权管理接口，需要加更强的节点身份校验",
+    "按来源、信任边界或双向认证限制 OpenAPI 的访问范围",
+    "更新示例部署文档和 Docker 示例，强制运维人员提供非默认 token"
+  ]
+}
+{
+  "question": "logDetailCat 跨分组读取日志（IDOR）这个问题，建议怎么修复？",
+  "expected_sources": [
+    3936
+  ],
+  "answer_points": [
+    "在 logDetailCat 加载完 XxlJobLog 之后调用 JobGroupPermissionUtil.validJobGroupPermission(...) 做权限校验",
+    "把 logId 当成需要保护的对象引用，校验当前用户是否有权访问对应的 jobGroup",
+    "尽量避免暴露可预测的自增 ID",
+    "给 logDetailPage 和 logDetailCat 都补充回归测试，确保两者权限规则一致"
+  ]
+}
+{
+  "question": "这份 Groovy/脚本类型代码执行漏洞报告里，提到的修复 PR 编号是多少？",
+  "expected_sources": [
+    3945
+  ],
+  "answer_points": [
+    "报告末尾「Recommend Patch」给出的链接是 https://github.com/xuxueli/xxl-job/pull/3944，也就是 PR #3944",
+    "注：这个问题只能算「从单篇 issue 文本里读取它提到的 PR 编号」，语料库目前只抓取了 issue、没有把 PR 内容一起入库，不构成真正的跨文档关联检索"
+  ]
+}
+{
+  "question": "3.x 版本的服务端是否支持 2.5 版本的客户端？",
+  "expected_sources": [
+    3893
+  ],
+  "answer_points": [
+    "该 issue 只有提问者描述自己的场景（java8 用 2.5 版本，新项目 java21/springboot 4.01），并询问该用什么版本、如何搭配",
+    "没有任何回复或官方说明确认 3.x 服务端和 2.5 客户端之间的兼容性",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "JobThread 执行超时任务时，是否可以改成用线程池的 submit 来代替每次 new 线程？",
+  "expected_sources": [
+    3894
+  ],
+  "answer_points": [
+    "提问者观察到每次调度都 new 一个线程、开销大，并询问能否改成线程池",
+    "语料中没有维护者或其他人给出的回复、结论或改造方案",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "xxl-job 是否支持直接在参数上执行 SQL 而不是执行存储过程？",
+  "expected_sources": [
+    3896
+  ],
+  "answer_points": [
+    "该 issue 只是一句提议：默认参数这个字段可以把类型定义为 TEXT",
+    "没有任何确认这个提议是否被采纳、是否已支持或计划支持",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "针对 jdk8，官方是否已经计划好什么时候修复 CVE-2025-7787？",
+  "expected_sources": [
+    3900
+  ],
+  "answer_points": [
+    "提问者自己提到「看 3.x 版本已经修复了」，并要求作者把修复同步到 2.4.2 使用的分支",
+    "这只是提问者单方面的判断和请求，语料中没有维护者确认的修复计划或时间表",
+    "应拒答，不能把提问者的推测当作官方确认的修复计划"
+  ]
+}
+{
+  "question": "多机部署时任务路由规则失效，具体是什么原因导致的？",
+  "expected_sources": [
+    3902
+  ],
+  "answer_points": [
+    "该 issue 只有一句描述：如果多机部署的话，任务路由本地存储，导致规则并不正确",
+    "没有进一步的根因分析、复现细节或解决方案",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "调用执行器的 /beat 心跳检测接口返回 Empty reply from server，是什么原因？",
+  "expected_sources": [
+    3908
+  ],
+  "answer_points": [
+    "该 issue 只贴了一条 curl 命令和 curl: (52) Empty reply from server 的报错",
+    "没有任何环境信息、根因分析或后续排查结论",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "unmappable character (0xC6) for encoding UTF-8 这个编码报错是什么原因引起的，该怎么解决？",
+  "expected_sources": [
+    3910
+  ],
+  "answer_points": [
+    "提问者只说明自己环境是 maven 3.6.3、jdk17，已经尝试各种编码配置但仍然复现",
+    "没有给出具体触发场景、根因或解决办法",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "定时任务数量持续增长，是不是不会触发上限值？",
+  "expected_sources": [
+    3914
+  ],
+  "answer_points": [
+    "该 issue 正文只有一张截图，没有任何文字说明或回复",
+    "语料中无法获取截图内容，也没有文字性的结论",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "任务分片是否缺少强约束，这个问题是否存在？",
+  "expected_sources": [
+    3917
+  ],
+  "answer_points": [
+    "该 issue 正文只有一张截图，没有任何文字说明或回复",
+    "语料中无法获取截图内容，也没有文字性的结论",
+    "应拒答，语料中没有找到明确答案"
+  ]
+}
+{
+  "question": "终止某个任务实例时，为什么同一个任务分配到该执行器上的所有实例都被终止了？这是不是符合预期的行为？",
+  "expected_sources": [
+    3934
+  ],
+  "answer_points": [
+    "提问者描述现象：终止一个任务实例时，该任务在该执行器上的所有实例都被终止了",
+    "提问者自己提出想法，认为终止操作应该只终止指定的任务执行实例，而不是该任务在执行器上的所有实例，并请作者解答",
+    "语料中没有维护者的回复或确认这是否符合预期设计",
+    "应拒答，不能把提问者自己的猜测当作已确认的结论"
+  ]
+}

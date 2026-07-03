@@ -2,17 +2,25 @@ import json
 
 
 def read_jsonl(path):
+    # 兼容两种格式：一行一条的标准 jsonl，以及手工美化后每个对象跨多行缩进的格式
+    # （gold.jsonl / chunks.jsonl 有时会被手动格式化方便查看）。
     items = []
+    decoder = json.JSONDecoder()
 
-    with path.open("r", encoding="utf-8") as file:
-        for line in file:
-            line = line.strip()
+    text = path.read_text(encoding="utf-8")
+    pos = 0
+    length = len(text)
 
-            if not line:
-                continue
+    while pos < length:
+        while pos < length and text[pos].isspace():
+            pos += 1
 
-            item = json.loads(line)
-            items.append(item)
+        if pos >= length:
+            break
+
+        item, end = decoder.raw_decode(text, pos)
+        items.append(item)
+        pos = end
 
     return items
 
