@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import Distance, PointStruct, VectorParams, SparseVectorParams, SparseIndexParams
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import normalize_embeddings
 
@@ -17,6 +17,7 @@ COLLECTION_NAME = "repo_assistant_chunks"
 
 MODEL_NAME = "BAAI/bge-m3"
 VECTOR_SIZE = 1024
+
 
 def create_qdrant_client():
     # 连接本机docker的qdrant
@@ -45,7 +46,12 @@ def recreate_collection(client):
         vectors_config=VectorParams(
             size=VECTOR_SIZE,
             distance=Distance.COSINE,
-        )
+        ),
+        sparse_vectors_config={
+            "sparse": SparseVectorParams(
+                index=SparseIndexParams()
+            )
+        }
     )
 
 def build_payload(chunk):
@@ -119,6 +125,8 @@ def upsert_chunks(client, chunks, model):
 
 
 def main():
+
+
     chunks = read_jsonl(CHUNK_PATH)
     print(f"loaded chunks: {len(chunks)}")
 

