@@ -1,0 +1,393 @@
+{
+  "question": "有个定时跑的脚本本身明明成功结束了，可后台的执行记录却写着这次失败，最后排查出来是什么原因？",
+  "expected_sources": [
+    3989
+  ],
+  "answer_points": [
+    "使用的是 3.4.2 版本，脚本日志显示执行成功并正常退出，JobThread 的记录里 handleCode=200、handleMsg=null，但界面和数据库仍显示「任务结果丢失，标记失败」",
+    "评论里给出的排查结论是：手动注册的地址和执行器自动上报的地址不一致——虽然是同一个 instance，但一个是域名地址、一个是 ip 地址",
+    "给出的解决办法是给执行器显式配置自己的地址，例如 springboot 环境变量 XXL_JOB_EXECUTOR_ADDRESS=http://qfxxljobexe:9999",
+    "这个结论来自评论区的排查，不是维护者的正式确认"
+  ],
+  "tags": [
+    "释义",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "手动注册的地址和执行器自动上报的地址不一致"
+  ]
+}
+{
+  "question": "启动时把日志存放的根目录指到一个自定义位置之后，是不是每一类日志都会跟着挪到新目录下？",
+  "expected_sources": [
+    3959
+  ],
+  "answer_points": [
+    "不是，只有一部分会跟着变",
+    "传入自定义路径后，只有 logBasePath 和 glueSrcPath 被重新赋值",
+    "callbackLogPath 是类加载时基于旧的默认 logBasePath 拼出来的静态字段，方法里没有对它重新赋值",
+    "结果是回调日志实际仍然写在默认路径下；版本为 3.4.0，语料中没有维护者对此的回复"
+  ],
+  "tags": [
+    "释义"
+  ],
+  "expected_evidence": [
+    "private static String callbackLogPath"
+  ]
+}
+{
+  "question": "控制台里想一次性清理掉一批任务，为什么系统不给批量操作？官方对这个诉求是什么态度？",
+  "expected_sources": [
+    3968
+  ],
+  "answer_points": [
+    "前端按钮使用了 selectOnlyOne 样式类，多选时按钮虽被 CSS 禁用，但 CSS 禁用无法真正阻止点击",
+    "JS 校验写死为 selectIds.length !== 1，后端 Controller 同样限制 ids.size() != 1，因此多选必然报「请选择一条数据」",
+    "涉及 job.list.ftl、group.list.ftl 以及 JobInfoController、JobGroupController 的 delete/start/stop 接口",
+    "维护者在评论里的表态是：评估执行器、任务增删操作为低频操作，建议保持选中单个，如有需求可定制——也就是不打算改成批量"
+  ],
+  "tags": [
+    "释义",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "评估执行器、任务增删操作为低频操作"
+  ]
+}
+{
+  "question": "有个每秒执行一次的任务，经常要慢上一两秒才真正开始跑，这种偏差会连带引发什么后果？给出的解释是什么？",
+  "expected_sources": [
+    3903
+  ],
+  "answer_points": [
+    "报告者举例：10:27:21 秒调度的任务，到 10:27:22 秒才执行，固定速率 1 秒一次的配置下就会触发阻塞策略",
+    "该现象一小时大概出现五六次",
+    "维护者的解释是推测任务耗时或者调度请求网络慢，导致执行出现阻塞",
+    "给出的建议是可按需启用阻塞策略"
+  ],
+  "tags": [
+    "释义",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "推测任务耗时或者调度请求网络慢"
+  ]
+}
+{
+  "question": "监控首页那张统计曲线有连续几天完全是空的，把服务重启一下数据又自己补回来了，这是什么问题导致的？",
+  "expected_sources": [
+    3885
+  ],
+  "answer_points": [
+    "环境是 xuxueli/xxl-job-admin:2.5.0、redhat7.8，从 12-02 开始 xxl_job_log_report 表不再生成数据",
+    "重启 xxl-job-admin 模块后，最近 3 天的 xxl_job_log_report 数据重新生成了",
+    "报告者本地测试时在 JobLogReportHelper 中打印日志是正常的",
+    "维护者回复：低版本异常情况下存在守护线程中断问题，建议升级"
+  ],
+  "tags": [
+    "释义",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "低版本异常情况下存在守护线程中断问题"
+  ]
+}
+{
+  "question": "java.nio.file.NoSuchFileException 出现在 FileTool.delete 到 JobLogFileCleanThread 这条调用链上，官方最后是怎么答复的？",
+  "expected_sources": [
+    3941
+  ],
+  "answer_points": [
+    "客户端版本升级到 3.3.2 后偶现，异常栈落在 com.xxl.tool.io.FileTool.delete / FileTool.clean，再往上是 JobLogFileCleanThread",
+    "维护者最初要求贴出完整异常日志，报告者回复这已经是完整线程栈并指出位置在 JobLogFileCleanThread.java:82",
+    "补充信息：有人观察到每日 14:10 左右触发一次，也有人报告运行环境是 k8s 多 pod、JDK 17 和 21，每日一次但时间不固定",
+    "维护者一度反问是不是单个机器部署了多个执行器",
+    "最终答复是：master 分支已经优化推送，将随下个版本发布"
+  ],
+  "tags": [
+    "标识符",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "master分支已经优化推送"
+  ]
+}
+{
+  "question": "报错日志里写着 The last packet successfully received from the server was 8,603 milliseconds ago，连接池告警最终导致任务调度全部停止，报告者最后是靠什么绕过去的？",
+  "expected_sources": [
+    3891
+  ],
+  "answer_points": [
+    "从 3.2.0 升级到 3.3.1 后出现，调低 maxLifetime 依然无法解决，最终导致任务调度全部停止",
+    "维护者回复：需要确保调度中心与数据库网络保持通畅；并称已针对异常情况下的数据库网络问题强化自动恢复能力，代码已推送 master 分支，随下个版本发布",
+    "报告者自己的绕过方式是：调整 spring.datasource.hikari.minimum-idle=1、删除 spring.datasource.hikari.connection-test-query=SELECT 1、设置 spring.datasource.hikari.validation-timeout=3000",
+    "报告者推测是因为用的云数据库网络不够稳定，但同样配置在之前版本从未出现此问题"
+  ],
+  "tags": [
+    "标识符",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "spring.datasource.hikari.minimum-idle=1"
+  ]
+}
+{
+  "question": "java.io.IOException: Premature EOF 出现在 TriggerCallbackThread.doCallback 的回调链路上，给出的常见原因是什么？",
+  "expected_sources": [
+    3922
+  ],
+  "answer_points": [
+    "服务端是 2.4.2 镜像、k8s 部署，客户端 2.5.0，设置了 10 秒连接超时仍然出现",
+    "异常栈经过 ChunkedInputStream.readAheadBlocking → XxlJobRemotingUtil.postBody → AdminBizClient.callback → TriggerCallbackThread.doCallback",
+    "给出的常见原因是：中间代理/负载均衡（如 nginx）在响应还没发完时因超时或策略主动断开连接",
+    "建议的排查方向是检查中间层"
+  ],
+  "tags": [
+    "标识符",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "在响应还没发完时因超时或策略主动断开连接"
+  ]
+}
+{
+  "question": "执行器注册时报 http client invoke fail, timeout invalid，registryValue 是 http://127.0.0.1:48080，语料里给出结论了吗？",
+  "expected_sources": [
+    3925
+  ],
+  "answer_points": [
+    "语料里只有一段 ExecutorRegistryThread 的注册失败日志，没有任何结论",
+    "日志内容为 registryGroup='EXECUTOR'、registryKey='vonsu-sport-executor'、registryValue='http://127.0.0.1:48080'",
+    "异常由 com.xxl.tool.http.client.HttpClient.invoke 抛出",
+    "该 issue 没有任何评论，语料中没有根因分析、排查结论或解决办法——这一条应当如实说明找不到答案"
+  ],
+  "tags": [
+    "标识符",
+    "应说明无结论"
+  ],
+  "expected_evidence": [
+    "registryKey='vonsu-sport-executor'"
+  ]
+}
+{
+  "question": "CVE-2025-7787 针对 jdk8 的修复，官方给出的排期说法是什么？",
+  "expected_sources": [
+    3900
+  ],
+  "answer_points": [
+    "维护者在评论里的答复是：建议升级 3.x 新版本，低版本排期中",
+    "也就是官方确认了低版本在排期，但语料中没有给出具体的修复时间表",
+    "提问者自己提到「看 3.x 版本已经修复了」并要求把修复同步到 2.4.2 使用的分支，这是提问者的判断，不是官方确认"
+  ],
+  "tags": [
+    "标识符",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "建议升级3.x新版本，低版本排期中"
+  ]
+}
+{
+  "question": "语料里有多份关于 logDetailCat 越权的安全报告，其中有一份维护者的回应认为这里已经存在权限校验逻辑、没有当成缺陷受理，是哪一份？这份报告的写法有什么特点？",
+  "expected_sources": [
+    3936
+  ],
+  "answer_points": [
+    "是标题为 IDOR in /xxl-job-admin/joblog/logDetailCat Allows Cross-Group 的那一份（issue 3936）",
+    "维护者的评论只有一句：存在 执行器 权限检验逻辑——既没有确认修复，也没有承认是缺陷",
+    "这份报告按 public issue / CVE 风格草稿撰写，带 Summary、Exploitation、Preconditions、Impact 分节和界面截图复现（用 u_g2 账号演示跨组读取）",
+    "报告在 Disclosure Notes 里自己注明：标题中的版本范围只是披露占位符，若维护者确认不同的影响范围应予调整",
+    "对比：另外两份同类报告（3983、3975）得到的回应分别是「master 分支已修复，升级即可」和「仓库代码已修复，将跟随下个版本发布」"
+  ],
+  "tags": [
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "存在 执行器 权限检验逻辑"
+  ]
+}
+{
+  "question": "哪一份安全报告提到自己曾在 2026 年 5 月 27 日通过邮件私下上报过，但没有得到任何回应？",
+  "expected_sources": [
+    3983
+  ],
+  "answer_points": [
+    "是标题为 Authenticated IDOR in /joblog/logDetailCat 的那一份（issue 3983），开头写明 reported privately on 27 May 2026 via email - no response",
+    "内容是 job log viewer 的授权绕过：任何已登录用户都能读取自己不属于的 job group 的执行日志内容",
+    "在 xuxueli/xxl-job-admin:2.4.2、MySQL 8.4 默认 schema 上做过实测验证：admin 在 job group 1（role=1），user2 的 permission=2（只能访问 job group 2、role=0），仍能读到 group 1 的日志",
+    "报告指出 pageList、clearLog、getJobsByGroup 都调用了权限校验，只有 logDetailCat 没有",
+    "建议的修复是给 logDetailCat 的参数列表加上 HttpServletRequest，并在 null 检查之后立即调用 JobGroupPermissionUtil.validJobGroupPermission(request, jobLog.getJobGroup())，与 logDetailPage 保持一致",
+    "维护者评论：master 分支已修复，升级即可"
+  ],
+  "tags": [
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "privately on 27 May 2026 via email"
+  ]
+}
+{
+  "question": "300 个任务、1 个 admin 实例、3 个执行器实例，全部走分片广播且每秒调度一次的场景下出现丢调度，维护者给了哪几条建议？",
+  "expected_sources": [
+    3948
+  ],
+  "answer_points": [
+    "维护者先指出：调度线程阻塞、db 写网络波动都会导致类似问题",
+    "建议一：调大调度线程配置",
+    "建议二：升级最新版本，支持调度合并写，针对高频调度针对性优化",
+    "建议三：保证与数据库网络稳定",
+    "报告者使用的是 xxljob 2.4.1，现象是直接少了第 25 和 26 秒的调度，期间 admin 和 executor 实例的 cpu、内存都在正常范围",
+    "报告者追问数据库存在大量慢 SQL（因数据库负载高和 log 表数据过多引起），问是否有替代 mysql 的数据源、或是否有开关控制写入 log 表——语料中没有对这条追问的回复"
+  ],
+  "tags": [
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "升级最新版本，支持调度合并写"
+  ]
+}
+{
+  "question": "哪一份 logDetailCat 的报告附了 CVSS 评分表，并逐个列出同一个 controller 里其它接口是否调用了权限校验、精确到行号？",
+  "expected_sources": [
+    3975
+  ],
+  "answer_points": [
+    "是标题为 Broken Access Control in /joblog/logDetailCat — Cross-Tenant 的那一份（issue 3975）",
+    "影响版本写的是 xxl-job 3.4.2-SNAPSHOT（master 分支，截至 2026-06-17），模块 xxl-job-admin",
+    "接口对照表：pageList 在 JobLogController.java:123、logKill 在 :199、clearLog 在 :229、logDetailPage 在 :282，这四个都调用了 validJobGroupPermission；只有 logDetailCat（:295-327）没有调用",
+    "CVSS 表里 Attack Vector 为 Network、Attack Complexity 为 Low、Privileges Required 为 Low（any non-admin account）、User Interaction 为 None",
+    "复现环境为 MySQL 8.0.43、xxl-job-admin 监听 :8080、executor 监听 :8081(web) 和 :9999(Netty)，用 executorParam=idor-poc-trace-marker 打标追踪",
+    "维护者评论：仓库代码已修复，将跟随下个版本发布"
+  ],
+  "tags": [
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "Privileges Required"
+  ]
+}
+{
+  "question": "GLUE(PowerShell) 在 Windows 下日志读不出来这个问题，中间有人尝试过什么改法、结果如何？官方最后是怎么收口的？",
+  "expected_sources": [
+    3921,
+    3930
+  ],
+  "answer_points": [
+    "有人尝试过：复写 ScriptJobHandler 第 68 行调用的 ScriptUtil.markScriptFile，在生成脚本文件时给 UTF8 编码加上 BOM，以便在 windows 环境下执行 powershell 脚本",
+    "结果适得其反：改之前生成的日志是 UTF8 无 BOM 编码，没有中文时前端能正常读取；改之后新生成日志的编码变成 GB2312/ASCII，前端反而无法读取",
+    "这次尝试记录在 issue 3930（版本 3.3.2、执行器 sample-springboot、powershell 5.1），后被维护者标记为重复并合并至 3921，同时要求提供完整复现步骤、环境、安装依赖和任务配置",
+    "在 3921 里维护者最初的回应是：无法复现，需要进一步提供完整复现环境以及操作步骤",
+    "最终收口方案：PowerShell 类型 GLUE 任务升级为使用 PowerShell 7（pwsh 命令）执行，提升性能、编码兼容性以及跨平台适配性；升级后统一 UTF-8 编码解决编码问题，历史脚本可兼容并支持跨平台运行；代码已推送 master 分支，随下个版本发布",
+    "附带前提：对应执行器所在机器需要安装 PowerShell 7.0 及以上版本才支持 pwsh 命令"
+  ],
+  "tags": [
+    "多来源",
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "为UTF8编码添加BOM",
+    "升级使用 PowerShell7（pwsh命令）执行"
+  ]
+}
+{
+  "question": "语料里一共有几份独立提交的 logDetailCat 越权报告？维护者对它们的回应一致吗？",
+  "expected_sources": [
+    3983,
+    3975,
+    3936
+  ],
+  "answer_points": [
+    "一共三份，分别是 issue 3983、3975、3936",
+    "三份指向同一个缺陷：JobLogController#logDetailCat 只按用户可控的 logId 加载日志记录，就直接向执行器请求日志内容，没有调用 JobGroupPermissionUtil.validJobGroupPermission",
+    "维护者的回应并不一致：对 3983 回「master 分支已修复，升级即可」",
+    "对 3975 回「仓库代码已修复，将跟随下个版本发布」",
+    "对 3936 回「存在 执行器 权限检验逻辑。」——既没有确认修复，也没有承认是缺陷"
+  ],
+  "tags": [
+    "多来源",
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "master 分支已修复，升级即可",
+    "仓库代码已修复，将跟随下个版本发布",
+    "存在 执行器 权限检验逻辑"
+  ]
+}
+{
+  "question": "语料里两份针对 /jobinfo/trigger 的 SSRF 报告，维护者分别用什么理由回应的？",
+  "expected_sources": [
+    3935,
+    3924
+  ],
+  "answer_points": [
+    "对 issue 3935 的回应是：能够登录系统，默认说明存在系统权限，属于用户主动行为",
+    "对 issue 3924 的回应是：存在 accesstoken 安全验证",
+    "两条回应都属于不予受理，但理由不同：前者认为这是已授权用户的主动行为，后者认为已有 accessToken 这层验证",
+    "两份报告指向同一处：手动触发任务时用户可控的 addressList 会覆盖分组配置的执行器地址，admin 随后向该地址发起服务端请求",
+    "3935 侧重权限层面分析：XxlJobServiceImpl.trigger 只校验当前用户对 jobGroup 是否有权限，不校验地址是否属于该执行器分组；JobTrigger 里只要 addressList 非空就 setAddressType(1) 并覆盖 addressList",
+    "3924 附了一段 Python PoC，通过改写 requests 的 request 方法给 /xxl-job-admin/jobinfo/trigger 带上 Cookie，把 addressList 设为一个 OOB 地址"
+  ],
+  "tags": [
+    "多来源",
+    "干扰项"
+  ],
+  "expected_evidence": [
+    "属于用户主动行为",
+    "存在accesstoken安全验证"
+  ]
+}
+{
+  "question": "对于「每次调度都新建线程、开销太大，能不能改用线程池 submit」这个提议，官方是什么态度？",
+  "expected_sources": [
+    3894
+  ],
+  "answer_points": [
+    "issue 正文只有提问者的观察和提问，没有任何结论",
+    "维护者在评论里回复：单任务会控制只允许新建单个线程，线程使用可控",
+    "并说明：为精准控制任务，短期不考虑内置线程池",
+    "另有一条评论追问是否考虑使用 jdk21 的虚拟线程（认为真实线程的创建开销太大），语料中没有对这条追问的回复"
+  ],
+  "tags": [
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "短期不考虑内置线程池"
+  ]
+}
+{
+  "question": "有人反驳说 PowerShell 任务日志读不出来其实跟参数是不是中文没关系，他给出的依据是什么？",
+  "expected_sources": [
+    3921
+  ],
+  "answer_points": [
+    "依据一：windows 下即使不使用参数，同样无法读取日志",
+    "依据二：本机日志文件中是有内容的，只是服务端读取出错",
+    "由此他得出结论：这个问题应该与中文参数无关",
+    "这个说法与 issue 标题把原因归结为「参数为中文的情况」是相反的"
+  ],
+  "tags": [
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "windows下即使不使用参数，也无法读取日志"
+  ]
+}
+{
+  "question": "针对 GLUE IDE 那个存储型 XSS，有人提出过一个 freemarker 层面的通用防护配置，是什么？这个问题最终怎么处理的？",
+  "expected_sources": [
+    3964
+  ],
+  "answer_points": [
+    "评论里提出的通用防护是：直接让 freemarker 对输出含有 HTML 的内容转义，配置 spring.freemarker.settings.output_format=HTML",
+    "受影响组件是 com/xxl/job/admin/controller/biz/JobCodeController.java",
+    "攻击方式是通过 jobcode/save 把 <script src=...> 写进 glueRemark，管理员通过 GLUE IDE 访问该任务时即触发，配合 CSRF 向 /user/insert 静默创建管理员用户",
+    "维护者最初的回应是「鸡肋。。」以及「无法复现，需要给到更详细操作步骤」，报告者补充了完整复现步骤后",
+    "最终答复是：修复逻辑已经推送，升级 3.4.1 可防护"
+  ],
+  "tags": [
+    "答案在评论"
+  ],
+  "expected_evidence": [
+    "freemarker对输出含有HTML的内容转义"
+  ]
+}

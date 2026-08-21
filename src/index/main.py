@@ -18,6 +18,14 @@ COLLECTION_NAME = "repo_assistant_chunks"
 MODEL_NAME = "BAAI/bge-m3"
 VECTOR_SIZE = 1024
 
+# 嵌入内容实验开关：True = 把 title 拼在 text 前面一起嵌入；False = 只嵌入 text（原基线）。
+# 动机见 eval/report.md「失败模式：找对了文章，找错了段落」——短评论段单独嵌入时，
+# 向量里没有任何"我属于哪个 issue"的信息。比如"master分支已经优化推送，将随下个版本发布。"
+# 这一段，和 3890 下面那条一字不差的回复在向量空间里几乎是同一个点，
+# 所以问"NoSuchFileException 官方怎么答复的"时根本搭不上。
+# 注意：只影响送进模型的文本，payload 里存的仍是原始 text，检索结果和评测比对不受影响。
+EMBED_WITH_TITLE = True
+
 
 def create_qdrant_client():
     # 连接本机docker的qdrant
@@ -95,13 +103,27 @@ def build_point(chunk, vector):
         payload=build_payload(chunk),
     )
 
+def build_embed_text(chunk):
+    # 决定送进嵌入模型的到底是哪段文字。开关见 EMBED_WITH_TITLE。
+    text = chunk.get("text") or ""
+
+    if not EMBED_WITH_TITLE:
+        return text
+
+    title = chunk.get("title") or ""
+
+    if not title:
+        return text
+
+    return f"{title}\n{text}"
+
+
 def build_points(chunks, model):
     # 从每个chunk中取出正文，批量生成真实的embedding。
     texts = []
 
     for chunk in chunks:
-        text = chunk.get("text") or ""
-        texts.append(text)
+        texts.append(build_embed_text(chunk))
 
     vectors = model.encode(texts, normalize_embeddings=True).tolist()
 
